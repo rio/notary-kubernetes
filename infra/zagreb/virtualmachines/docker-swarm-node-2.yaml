@@ -2,14 +2,14 @@ apiVersion: kubevirt.io/v1alpha3
 kind: VirtualMachine
 metadata:
   labels:
-    kubevirt.io/vm: docker-swarm-node-1
-  name: docker-swarm-node-1
+    kubevirt.io/vm: docker-swarm-node-2
+  name: docker-swarm-node-2
 spec:
   running: true
   template:
     metadata:
       labels:
-        kubevirt.io/vm: docker-swarm-node-1
+        kubevirt.io/vm: docker-swarm-node-2
     spec:
       domain:
         devices:
@@ -27,7 +27,7 @@ spec:
       volumes:
       - name: root-disk
         dataVolume:
-          name: root-disk-1
+          name: root-disk-2
       - name: cloudinitdisk
         cloudInitNoCloud:
           secretRef:
@@ -37,7 +37,7 @@ spec:
 
   dataVolumeTemplates:
   - metadata:
-      name: root-disk-1
+      name: root-disk-2
     spec:
       pvc:
         accessModes:
@@ -47,8 +47,6 @@ spec:
             storage: 100Gi
       source:
         http:
-          # url: https://cloud-images.ubuntu.com/minimal/releases/focal/release/ubuntu-20.04-minimal-cloudimg-amd64.img
-          # url: https://cloud-images.ubuntu.com/minimal/releases/bionic/release/ubuntu-18.04-minimal-cloudimg-amd64.img
           # url: https://cloud.debian.org/images/cloud/buster/20201214-484/debian-10-nocloud-amd64-20201214-484.qcow2
           url: https://cloud.centos.org/centos/8/x86_64/images/CentOS-8-GenericCloud-8.3.2011-20201204.2.x86_64.qcow2
 
@@ -57,14 +55,14 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: docker-swarm-node-1
+  name: docker-swarm-node-2
   annotations:
-    metallb.universe.tf/allow-shared-ip: docker-swarm-node-1
+    metallb.universe.tf/allow-shared-ip: docker-swarm-node-2
 spec:
   selector:
-    kubevirt.io/vm: docker-swarm-node-1
-  loadBalancerIP: 145.100.106.209
+    kubevirt.io/vm: docker-swarm-node-2
   type: LoadBalancer
+  loadBalancerIP: 145.100.106.210
   ports:
   - name: ssh
     port: 22

@@ -6,12 +6,17 @@ namespace: virtualmachines
 resources:
 - namespace.yaml
 - docker-swarm-node-1.yaml
+- docker-swarm-node-2.yaml
 
 secretGenerator:
   - name: userdata-cloud-init
     namespace: virtualmachines
     files:
-      - userdata=cloud-init/cloud-init.yaml
+      - userdata=cloud-init/userdata.yaml
+  - name: networkdata-cloud-init
+    namespace: virtualmachines
+    files:
+      - networkdata=cloud-init/networkdata.yaml
 
 generatorOptions:
   disableNameSuffixHash: true
