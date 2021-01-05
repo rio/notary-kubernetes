@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: virtualmachines
+
+resources:
+- namespace.yaml
+- docker-swarm-node-1.yaml
+
+secretGenerator:
+  - name: userdata-cloud-init
+    namespace: virtualmachines
+    files:
+      - userdata=cloud-init/cloud-init.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
