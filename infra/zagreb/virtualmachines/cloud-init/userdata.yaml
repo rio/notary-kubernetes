@@ -1,0 +1,33 @@
+#cloud-config
+ssh_authorized_keys:
+  # rio
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICWtWFDuehS1fPkSPO91U6BN8lIw4lmBFc/WlDGIT18F cardno:000612025596
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDA1bQRngIqzCO8zzkcNQGOutSmwiqT6VGuDnSNiZDrVUmVjMd1wRxi2fxD4QgP6XGsj63feikYqVIB6fYVsBNKQTZ+xS6zFOIMxRAU9bJ8ECqam/+TMytu/K2C6tlWxz1zkxxQoOv4fu2R0Yl27yheHE8ieYMu6ugnrP59kBWhZplScKVpwz5bT6nc7J4wCPuvkv8AH8UyrpmbxkPjnis4NTuictFZBA2ybqkKB9pEhFVIDmquELiEuiiuI2wFcDTuXkVp4oeXc7UJxW1LrgD+7Zqb3ruCLlZW6uufVQsS3rdt8hZC20GPS7p89XaGlSfnSCC86r1IkQ9FNvfWJ64/Nh//Ah9GIzUH6HhDwIz2yzZr/JpzubsCpcRY+doE9fVPRhbmGpCDSk4q00M3+dp1Ncqdr3zYojzc/mrSoMiQkbnZx45mVCpk2xcY1TC1+q2G3IqhYfGl2EVn+RTbKGEcQZWpLFtgLljuRmBzY0b8XteZtCFxMHJ+QCXBXSMPVPMdMfBFRHh8n2ODZn/TpoxiPJIcyzi7ZC7lcmJom6xp+O+pLXRjPpbdgkNpkB1dZr11/OinemNk2ni48Yo3CzPlNpYUV8bbH6u1RDVIKDxSMxJiOx+LS9ylp1c+D6RVvjNJyvdWTTxa/52RkdUc8SkZKSvF2B0hZud2PeHUIM1Xhw== cardno:000605489169
+  # mo
+  - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDLfMDhB0sPSwEEW82D/6a6Sluzp6UJkzWd9CKUMzQs/auyMeyXTU+tGMI9zQJ6c4hq9eAo1yliCmmgmD+5VNTgRd9+gCPebLLQhdlsD/vU8GOnH8OlSLTgtlg4GQSc/ACT9mtVNExbWoNIHuN2s7tyhmwK2yxzALqcWF9OlAMc7UhxIIpeBflkcbMcDf3InRqNBpnXmJOCl1UUpqr6MJYVN6JW+eF5D3E1w5TInfS8byDZdw+glhQ1Fcst/60+hKLF78igrCbCT0yck3GmitLwJFpF3c3sizbVS11xrs9DHMLWZDwFy6UjJ/v2Hv5F8SqxXnYfIQ4AJsr3m/1zKTeoTt0cnwlJOd1FbqUfE/fPlloaokDd/oOSWt6UBMfmdGFVCCCj1gOROYSGkW7tl4ytRMcHx19NJrDe1J6YJjj3RSgbcV1llLZi/vhezzS9qL0K1GuS37I2+u9AO8ilrTP6nhcsf8n3TixbKNMW47ZD+nforcsQSpRafn+jANjlM/0= melamin@MBP.local
+
+yum_repos:
+  docker-ce-stable:
+    name: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    enabled: true
+    gpgcheck: true
+    gpgkey: https://download.docker.com/linux/centos/gpg
+
+package_upgrade: true
+
+# ubuntu 20.04 packages
+# packages:
+#   - qemu-guest-agent
+#   - iptables-persistent
+#   - docker.io
+
+# centos 8 packages
+packages:
+  - qemu-guest-agent
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+
+runcmd:
+  - systemctl enable --now qemu-guest-agent docker
