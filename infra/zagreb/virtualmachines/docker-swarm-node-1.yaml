@@ -1,0 +1,48 @@
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  labels:
+    kubevirt.io/vm: docker-swarm-node-1
+  name: docker-swarm-node-1
+spec:
+  running: true
+  template:
+    metadata:
+      labels:
+        kubevirt.io/vm: docker-swarm-node-1
+    spec:
+      domain:
+        devices:
+          disks:
+          - name: root-disk
+            disk:
+              bus: virtio
+          - name: cloudinitdisk
+            disk:
+              bus: virtio
+        resources:
+          requests:
+            cpu: 2000m
+            memory: 2Gi
+      volumes:
+      - name: root-disk
+        dataVolume:
+          name: root-disk
+      - name: cloudinitdisk
+        cloudInitNoCloud:
+          secretRef:
+            name: userdata-cloud-init
+
+  dataVolumeTemplates:
+  - metadata:
+      name: root-disk
+    spec:
+      pvc:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+      source:
+        http:
+          url: https://cloud-images.ubuntu.com/minimal/releases/focal/release/ubuntu-20.04-minimal-cloudimg-amd64.img
