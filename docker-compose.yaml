@@ -1,0 +1,8 @@
+version: "3.8"
+
+services:
+  registry:
+    image: registry:2
+    ports:
+      - target: 5000
+        published: 80

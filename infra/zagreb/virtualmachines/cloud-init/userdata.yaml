@@ -24,7 +24,10 @@ package_upgrade: true
 
 # centos 8 packages
 packages:
+  # for better integration with kvm/qemu
   - qemu-guest-agent
+
+  # the required docker packages
   - docker-ce
   - docker-ce-cli
   - containerd.io
