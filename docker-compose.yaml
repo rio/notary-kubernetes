@@ -27,6 +27,8 @@ services:
     image: notary:server-0.6.1-2
     environment:
       NOTARY_SERVER_STORAGE_DB_URL: &serverdb_dsn server:server@tcp(serverdb:3306)/notaryserver?parseTime=true
+      NOTARY_SERVER_LOGGING_LEVEL: debug
+      NOTARY_SERVER_TRUST_SERVICE_TYPE: local
     restart: always
     deploy:
       restart_policy:
@@ -41,6 +43,8 @@ services:
     image: notary:signer-0.6.1-2
     environment:
       NOTARY_SIGNER_STORAGE_DB_URL: &signerdb_dsn signer:signer@tcp(signerdb:3306)/notarysigner?parseTime=true
+      NOTARY_SIGNER_STORAGE_DEFAULT_ALIAS: passwordalias2021
+      NOTARY_SIGNER_PASSWORDALIAS2021: testpassword
     restart: always
     deploy:
       restart_policy:
