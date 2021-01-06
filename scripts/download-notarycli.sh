@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set +eux
+set -eux
 
 echo "downloading binary"
 wget -q -O notary https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
