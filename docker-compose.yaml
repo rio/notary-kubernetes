@@ -34,6 +34,8 @@ services:
       restart_policy:
         condition: on-failure
         delay: 5s
+      placement:
+        constraints: [node.role == manager]
     ports:
       - target: 4443
         published: 443
@@ -53,6 +55,8 @@ services:
       restart_policy:
         condition: on-failure
         delay: 5s
+      placement:
+        constraints: [node.role == manager]
     command:
       - -config=/notary/signer/signer-config.json
     volumes:
