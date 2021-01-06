@@ -16,12 +16,6 @@ yum_repos:
 
 package_upgrade: true
 
-# ubuntu 20.04 packages
-# packages:
-#   - qemu-guest-agent
-#   - iptables-persistent
-#   - docker.io
-
 # centos 8 packages
 packages:
   # for better integration with kvm/qemu
@@ -31,6 +25,7 @@ packages:
   - docker-ce
   - docker-ce-cli
   - containerd.io
+  - vim
 
 runcmd:
   - systemctl enable --now qemu-guest-agent docker
