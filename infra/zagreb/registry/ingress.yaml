@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: registry
   annotations:
+    cert-manager.io/cluster-issuer: notary-ca-issuer
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.middlewares: registry-auth@kubernetescrd
 spec:
@@ -10,10 +11,14 @@ spec:
     - host: registry.rio.systems
       http:
         paths:
-          - path: /
+          - path: /v2
             pathType: Prefix
             backend:
               service:
                 name: registry
                 port:
                   number: 5000
+  tls:
+    - hosts:
+      - registry.rio.systems
+      secretName: notary-tls

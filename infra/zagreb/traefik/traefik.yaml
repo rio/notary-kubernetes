@@ -20,6 +20,7 @@ spec:
       - --global.checknewversion
     additionalArguments:
       - --accesslog
+      - --accesslog.format=json
       # always redirect from http to https
       # do not use "websecure" here because it will not point to 443 but to 8443
       - --entrypoints.web.http.redirections.entrypoint.to=:443
