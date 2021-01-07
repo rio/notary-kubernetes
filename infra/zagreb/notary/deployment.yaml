@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notary
+spec:
+  selector:
+    matchLabels:
+      app: notary
+  template:
+    metadata:
+      labels:
+        app: notary
+    spec:
+      containers:
+      - name: notaryserver
+        image: notary:server-0.6.1-2
+        args:
+          - -config=/etc/notary/server/server-config.json
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 4443
+          name: grpc
+        volumeMounts:
+          - mountPath: /etc/notary/server
+            name: notary-server-config
+      volumes:
+        - name: notary-server-config
+          configMap:
+            name: notaryserver
+            optional: false

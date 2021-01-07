@@ -1,0 +1,34 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: notary
+  annotations:
+    cert-manager.io/cluster-issuer: notary-ca-issuer
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  rules:
+    # the notary cli will interact with this endpoint. This because of basic auth.
+    - host: notary.rio.systems
+      http:
+        paths:
+          - path: /v2
+            pathType: Prefix
+            backend:
+              service:
+                name: notary
+                port:
+                  number: 4443
+    - host: registry.rio.systems
+      http:
+        paths:
+          - path: /v2/registry.rio.systems/{repository:[a-z0-9]+(?:[._-][a-z0-9]+)*}/_trust
+            pathType: Prefix
+            backend:
+              service:
+                name: notary
+                port:
+                  number: 4443
+  tls:
+    - hosts:
+      - notary.rio.systems
+      secretName: notary-tls
