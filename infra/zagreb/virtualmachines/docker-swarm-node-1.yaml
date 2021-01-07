@@ -61,7 +61,7 @@ metadata:
 spec:
   selector:
     kubevirt.io/vm: docker-swarm-node-1
-  loadBalancerIP: 145.100.106.209
+  loadBalancerIP: 145.100.106.211
   type: LoadBalancer
   ports:
   - name: ssh

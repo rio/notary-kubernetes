@@ -10,4 +10,4 @@ resources:
 - vm-management/kubevirt
 
 # virtualmachines
-- virtualmachines
+# - virtualmachines
