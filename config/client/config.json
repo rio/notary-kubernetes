@@ -1,0 +1,8 @@
+{
+  "trust_dir" : "~/.docker/trust",
+  "remote_server": {
+    "url": "https://lb.rio.wtf",
+    "root_ca": "root-ca.crt"
+  }
+}
+
