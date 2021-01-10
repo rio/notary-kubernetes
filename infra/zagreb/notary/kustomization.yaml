@@ -11,20 +11,66 @@ resources:
 
 configMapGenerator:
   - name: notaryserver
+    files:
+    - certs/root-ca.crt
     literals:
       - |
         server-config.json=
         {
-          "server": {
-                  "http_addr": ":4443"
-          },
-          "trust_service": {
-                  "type": "local"
-          },
-          "logging": {
-                  "level": "info"
-          },
-          "storage": {
-                  "backend": "memory"
-          }
+                "server": {
+                        "http_addr": ":4443"
+                },
+                "trust_service": {
+                        "type": "remote",
+                        "hostname": "notarysigner",
+                        "port": "7899",
+                        "key_algorithm": "ecdsa",
+                        "tls_ca_file": "/etc/notary/config/server/root-ca.crt",
+                        "tls_client_cert": "/etc/notary/tls/server/tls.crt",
+                        "tls_client_key": "/etc/notary/tls/server/tls.key"
+                },
+                "logging": {
+                        "level": "info"
+                },
+                "storage": {
+                        "backend": "memory"
+                },
+                "repositories": {
+                        "gun_prefixes": [
+                                "registry.rio.systems/"
+                        ]
+                }
         }
+
+  - name: notarysigner
+    files:
+    - certs/root-ca.crt
+    literals:
+      - |
+        signer-config.json=
+        {
+                "server": {
+                        "grpc_addr": ":7899",
+                        "tls_cert_file": "/etc/notary/tls/signer/tls.crt",
+                        "tls_key_file": "/etc/notary/tls/signer/tls.key",
+                        "client_ca_file": "/etc/notary/config/signer/root-ca.crt"
+                },
+                "logging": {
+                        "level": "info"
+                },
+                "storage": {
+                        "backend": "memory"
+                }
+        }
+
+secretGenerator:
+- name: notarysigner-tls
+  type: kubernetes.io/tls
+  files:
+  - tls.crt=certs/signer/notary-signer.crt
+  - tls.key=certs/signer/notary-signer.key
+- name: notaryserver-tls
+  type: kubernetes.io/tls
+  files:
+  - tls.crt=certs/server/notary-server.crt
+  - tls.key=certs/server/notary-server.key

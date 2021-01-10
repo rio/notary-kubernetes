@@ -1,21 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notary
+  name: notaryserver
 spec:
   selector:
     matchLabels:
       app: notary
+      component: server
   template:
     metadata:
       labels:
         app: notary
+        component: server
     spec:
       containers:
       - name: notaryserver
         image: notary:server-0.6.1-2
         args:
-          - -config=/etc/notary/server/server-config.json
+          - -config=/etc/notary/config/server/server-config.json
         resources:
           limits:
             memory: "128Mi"
@@ -24,10 +26,57 @@ spec:
         - containerPort: 4443
           name: grpc
         volumeMounts:
-          - mountPath: /etc/notary/server
-            name: notary-server-config
+          - mountPath: /etc/notary/config/server
+            name: notaryserver-config
+          - mountPath: /etc/notary/tls/server
+            name: notaryserver-tls
       volumes:
-        - name: notary-server-config
+        - name: notaryserver-config
           configMap:
             name: notaryserver
+            optional: false
+        - name: notaryserver-tls
+          secret:
+            secretName: notaryserver-tls
+            optional: false
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notarysigner
+spec:
+  selector:
+    matchLabels:
+      app: notary
+      component: signer
+  template:
+    metadata:
+      labels:
+        app: notary
+        component: signer
+    spec:
+      containers:
+      - name: notarysigner
+        image: notary:signer-0.6.1-2
+        args:
+          - -config=/etc/notary/config/signer/signer-config.json
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        volumeMounts:
+          - mountPath: /etc/notary/config/signer
+            name: notarysigner-config
+          - mountPath: /etc/notary/tls/signer
+            name: notarysigner-tls
+      volumes:
+        - name: notarysigner-config
+          configMap:
+            name: notarysigner
+            optional: false
+        - name: notarysigner-tls
+          secret:
+            secretName: notarysigner-tls
             optional: false
