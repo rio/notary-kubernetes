@@ -15,17 +15,17 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: notary
+                name: notaryserver
                 port:
                   number: 4443
     - host: registry.rio.systems
       http:
         paths:
-          - path: /v2/registry.rio.systems/{repository:[a-z0-9]+(?:[._-][a-z0-9]+)*}/_trust
+          - path: /v2/{repository:[a-z0-9/]+(?:[._-][a-z0-9/]+)*}/_trust
             pathType: Prefix
             backend:
               service:
-                name: notary
+                name: notaryserver
                 port:
                   number: 4443
   tls:
