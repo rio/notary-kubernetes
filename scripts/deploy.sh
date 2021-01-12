@@ -4,7 +4,7 @@ set -eu
 
 cd "$(dirname $0)/.."
 
-export GLOBAL_TIMEOUT=5m
+GLOBAL_TIMEOUT=5m
 
 echo "### Installing cert-manager"
 kustomize build deploy/dependencies/cert-manager | kubectl apply -f -
@@ -24,12 +24,12 @@ if [ "${USE_HELM_OPERATOR:-}" = "yes" ]; then
     kubectl wait --for=condition=Available deployments --all --namespace traefik-system --timeout=${GLOBAL_TIMEOUT}
 
 else
-    echo -e "\n ### Adding required helm repos"
+    echo -e "\n### Adding required helm repos"
     helm repo add bitnami https://charts.bitnami.com/bitnami
     helm repo add traefik https://helm.traefik.io/traefik
     helm repo update
 
-    echo -e "\n #### Installing traefik using helm cli"
+    echo -e "\n#### Installing traefik using helm cli"
     helm upgrade --install --namespace traefik-system --create-namespace --wait traefik traefik/traefik --version 9.12.3
 
     cat > mariadb-values.yaml <<EOF
@@ -48,7 +48,7 @@ initdbScripts:
         GRANT ALL PRIVILEGES ON notaryserver.* TO 'server'@'%';
 EOF
 
-    echo -e "\n #### Installing mariadb using helm cli"
+    echo -e "\n#### Installing mariadb using helm cli"
     helm upgrade --install --namespace mariadb --create-namespace --wait mariadb bitnami/mariadb --version 9.2.2 --values mariadb-values.yaml
 fi
 
