@@ -1,0 +1,71 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- deployment.yaml
+- service.yaml
+- migrate-job.yaml
+
+secretGenerator:
+  - name: notaryserver
+    literals:
+    - NOTARY_SERVER_STORAGE_DB_URL=server:server@tcp(mariadb.mariadb:3306)/notaryserver?parseTime=True
+  - name: notarysigner
+    literals:
+    - NOTARY_SIGNER_STORAGE_DB_URL=signer:signer@tcp(mariadb.mariadb:3306)/notarysigner?parseTime=True
+    - NOTARY_SIGNER_NOTARYDEMOPASSWORD=demopassword
+
+configMapGenerator:
+  - name: scripts
+    files:
+    - scripts/migrate.sh
+
+  - name: notaryserver
+    literals:
+      - |
+        server-config.json=
+        {
+                "server": {
+                        "http_addr": ":4443"
+                },
+                "trust_service": {
+                        "type": "remote",
+                        "hostname": "notarysigner",
+                        "port": "7899",
+                        "key_algorithm": "ecdsa",
+                        "tls_ca_file": "/etc/notary/tls/ca.crt",
+                        "tls_client_cert": "/etc/notary/tls/tls.crt",
+                        "tls_client_key": "/etc/notary/tls/tls.key"
+                },
+                "logging": {
+                        "level": "info"
+                },
+                "storage": {
+                        "backend": "mysql"
+                },
+                "repositories": {
+                        "gun_prefixes": [
+                                "registry.localhost/"
+                        ]
+                }
+        }
+
+  - name: notarysigner
+    literals:
+      - |
+        signer-config.json=
+        {
+                "server": {
+                        "grpc_addr": ":7899",
+                        "tls_cert_file": "/etc/notary/tls/tls.crt",
+                        "tls_key_file": "/etc/notary/tls/tls.key",
+                        "client_ca_file": "/etc/notary/tls/ca.crt"
+                },
+                "logging": {
+                        "level": "info"
+                },
+                "storage": {
+                        "backend": "mysql",
+                        "default_alias": "notarydemopassword"
+                }
+        }

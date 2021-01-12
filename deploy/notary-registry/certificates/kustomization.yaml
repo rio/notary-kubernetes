@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: notary
+
+resources:
+- notary-ca-issuer.yaml
+- notary-ca-secret.yaml
+
+- registry-tls-certificate.yaml
+- notaryserver-tls-certificate.yaml
+- notarysigner-tls-certificate.yaml

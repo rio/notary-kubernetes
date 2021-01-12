@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mariadb
+
+---
+
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: mariadb
+  namespace: mariadb
+spec:
+  chart: mariadb
+  version: 9.2.2
+  targetNamespace: mariadb
+  repo: https://charts.bitnami.com/bitnami
+  valuesContent: |
+    auth:
+      rootPassword: root
+
+    initdbScripts:
+      create_signer_database.sql: |
+        CREATE DATABASE IF NOT EXISTS notarysigner;
+        CREATE USER 'signer'@'%' IDENTIFIED BY 'signer';
+        GRANT ALL PRIVILEGES ON notarysigner.* TO 'signer'@'%';
+
+      create_server_database.sql: |
+        CREATE DATABASE IF NOT EXISTS notaryserver;
+        CREATE USER 'server'@'%' IDENTIFIED BY 'server';
+        GRANT ALL PRIVILEGES ON notaryserver.* TO 'server'@'%';
