@@ -6,18 +6,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.tls: "true"
 spec:
   rules:
-    - host: notary.localhost
-      http:
-        paths:
-          - path: /v2
-            pathType: Prefix
-            backend:
-              service:
-                name: notaryserver
-                port:
-                  number: 4443
-    - host: registry.localhost
-      http:
+    - http:
         paths:
           - path: /v2
             pathType: Prefix
@@ -26,6 +15,7 @@ spec:
                 name: registry
                 port:
                   number: 5000
+
           - path: /v2/{repository:[a-z0-9/]+(?:[._-][a-z0-9/]+)*}/_trust
             pathType: Prefix
             backend:
@@ -34,9 +24,4 @@ spec:
                 port:
                   number: 4443
   tls:
-    - hosts:
-      - notary.localhost
-      secretName: notaryserver-tls
-    - hosts:
-      - registry.localhost
-      secretName: registry-tls
+    - secretName: registry-tls

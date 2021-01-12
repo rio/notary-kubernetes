@@ -42,11 +42,6 @@ configMapGenerator:
                 },
                 "storage": {
                         "backend": "mysql"
-                },
-                "repositories": {
-                        "gun_prefixes": [
-                                "registry.localhost/"
-                        ]
                 }
         }
 
