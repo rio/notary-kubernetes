@@ -1,2 +1,3 @@
 kubeconfig
 certs
+mariadb-values.yaml

@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - image: migrate/migrate:v4.14.1
+        name: migrate
+        envFrom:
+          - secretRef:
+              name: notaryserver
+          - secretRef:
+              name: notarysigner
+        command: ["/bin/sh", "-c"]
+        args:
+          - /scripts/migrate.sh
+        volumeMounts:
+          - name: scripts
+            mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: scripts
+            defaultMode: 0700
