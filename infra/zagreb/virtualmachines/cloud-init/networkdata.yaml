@@ -1,6 +1,0 @@
-version: 2
-ethernets:
-  all:
-    match:
-      name: enp*
-    dhcp4: true
