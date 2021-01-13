@@ -19,6 +19,10 @@ spec:
     auth:
       rootPassword: root
 
+    primary:
+      persistence:
+        enabled: false
+
     initdbScripts:
       create_signer_database.sql: |
         CREATE DATABASE IF NOT EXISTS notarysigner;
