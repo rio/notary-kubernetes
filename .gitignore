@@ -4,3 +4,4 @@ mariadb-values.yaml
 k3d
 kustomize
 notary
+helm
