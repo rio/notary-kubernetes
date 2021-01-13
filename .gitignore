@@ -5,3 +5,4 @@ k3d
 kustomize
 notary
 helm
+kind-config.yaml
