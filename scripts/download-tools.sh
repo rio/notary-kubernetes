@@ -42,9 +42,6 @@ if [ "$OSTYPE" = "linux-gnu" ]; then
     K3D_URL=https://github.com/rancher/k3d/releases/download/v3.4.0/k3d-linux-amd64
     K3D_SHASUM=1c961f1161d7b7fb55658ee32081b250a0da6d5f81e40c307a0300e3e130d19f
 
-    KIND_URL=https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-linux-amd64
-    KIND_SHASUM=35a640e0ca479192d86a51b6fd31c657403d2cf7338368d62223938771500dc8
-
     HELM_URL=https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz
     HELM_BINARY_PATH=linux-amd64/helm
     HELM_SHASUM=d14d54d59558caebe234500f541fc2064b08d725ed8aa76f957f91c8d6a0fc46
@@ -58,9 +55,6 @@ elif [ "$OSTYPE" = "darwin" ]; then
 
     K3D_URL=https://github.com/rancher/k3d/releases/download/v3.4.0/k3d-darwin-amd64
     K3D_SHASUM=54b9b855eddcc3408fbd4f16eaafa6fffd54b17b7224ebe469ce0b2afe9e674c
-
-    KIND_URL=https://github.com/kubernetes-sigs/kind/releases/download/v0.9.0/kind-darwin-amd64
-    KIND_SHASUM=849034ffaea8a0e50f9153078890318d5863bafe01495418ea0ad037b518de90
 
     HELM_URL=https://get.helm.sh/helm-v3.4.2-darwin-amd64.tar.gz
     HELM_BINARY_PATH=darwin-amd64/helm
@@ -96,18 +90,6 @@ function download_k3d() {
     validate_binary $K3D_SHASUM k3d
 }
 
-function download_kind() {
-    printf "Downloading and validating kind\n"
-
-    if $wget_found = "true"; then
-        wget -qO kind $KIND_URL
-    elif $curl_found = "true"; then
-        curl -sSfLo kind $KIND_URL
-    fi
-
-    validate_binary $KIND_SHASUM kind
-}
-
 function download_kustomize() {
     printf "Downloading and validating Kustomize\n"
 
@@ -139,7 +121,6 @@ case "${1-}" in
         download_kustomize
         download_notary
         download_k3d
-        download_kind
     ;;
 
     "helm")
@@ -156,10 +137,6 @@ case "${1-}" in
 
     "k3d")
         download_k3d
-    ;;
-
-    "kind")
-        download_kind
     ;;
 
     *)
