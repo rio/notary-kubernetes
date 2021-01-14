@@ -21,12 +21,10 @@ function preflight_check() {
         fail="true"
     fi
 
-    if [ -z "${USE_HELM_OPERATOR:-}" ]; then
-        printf "USE_HELM_OPERATOR not set to 'yes' checking for the helm binary.\n"
-        if ! command -v helm > /dev/null ; then
-            printf "The helm binary cannot be found.\n"
-            fail="true"
-        fi
+    printf "Checking if helm is installed.\n"
+    if ! command -v helm > /dev/null ; then
+        printf "The helm binary cannot be found.\n"
+        fail="true"
     fi
 
     if $fail = "true" ; then
@@ -43,30 +41,15 @@ preflight_check
 printf "### Installing cert-manager"
 kustomize build deploy/dependencies/cert-manager | kubectl apply -f -
 
-if [ "${USE_HELM_OPERATOR:-}" = "yes" ]; then
-    echo -e "\n### Installing traefik using HelmChart resources"
-    kubectl apply -f deploy/dependencies/traefik.yaml
+echo -e "\n### Adding required helm repos"
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add traefik https://helm.traefik.io/traefik
+helm repo update
 
-    echo -e "\n### Installing mariadb using HelmChart resources"
-    kubectl apply -f deploy/dependencies/mariadb.yaml
+echo -e "\n#### Installing traefik using helm cli"
+helm upgrade --install --namespace traefik-system --create-namespace traefik traefik/traefik --version 9.12.3
 
-    echo -e "\n#### Waiting for helm charts to deploy"
-    kubectl wait --for=condition=Complete  jobs --all --namespace traefik-system --timeout=${GLOBAL_TIMEOUT}
-    kubectl wait --for=condition=Complete  jobs --all --namespace mariadb        --timeout=${GLOBAL_TIMEOUT}
-
-    echo -e "\n#### Waiting for traefik to report ready"
-    kubectl wait --for=condition=Available deployments --all --namespace traefik-system --timeout=${GLOBAL_TIMEOUT}
-
-else
-    echo -e "\n### Adding required helm repos"
-    helm repo add bitnami https://charts.bitnami.com/bitnami
-    helm repo add traefik https://helm.traefik.io/traefik
-    helm repo update
-
-    echo -e "\n#### Installing traefik using helm cli"
-    helm upgrade --install --namespace traefik-system --create-namespace traefik traefik/traefik --version 9.12.3
-
-    cat > mariadb-values.yaml <<EOF
+cat > mariadb-values.yaml <<EOF
 auth:
     rootPassword: root
 
@@ -86,12 +69,17 @@ initdbScripts:
         GRANT ALL PRIVILEGES ON notaryserver.* TO 'server'@'%';
 EOF
 
-    echo -e "\n#### Installing mariadb using helm cli"
-    helm upgrade --install --namespace mariadb --create-namespace mariadb bitnami/mariadb --version 9.2.2 --values mariadb-values.yaml
-fi
+echo -e "\n#### Installing mariadb using helm cli"
+helm upgrade --install --namespace mariadb --create-namespace mariadb bitnami/mariadb --version 9.2.2 --values mariadb-values.yaml
 
 echo -e "\n### Waiting for cert-manager to report ready"
 kubectl wait --for=condition=Available deployments --all --namespace cert-manager   --timeout=${GLOBAL_TIMEOUT}
+
+echo -e "\n### Waiting for traefik to report ready"
+kubectl wait --for=condition=Available deployments --all --namespace traefik-system  --timeout=${GLOBAL_TIMEOUT}
+
+echo -e "\n### Waiting for mariadb to report ready"
+kubectl wait --for=condition=Ready pods mariadb-0 --namespace mariadb  --timeout=${GLOBAL_TIMEOUT}
 
 echo -e "\n### Deploying notary and registry"
 kustomize build deploy/notary-registry | kubectl apply -f -
