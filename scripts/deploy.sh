@@ -6,11 +6,6 @@ cd "$(dirname $0)/.."
 
 GLOBAL_TIMEOUT=5m
 
-if [ -d ./bin ]; then
-    printf "Found bin directory in repository root, appending it to the PATH.\n"
-    PATH=$PATH:$PWD/bin
-fi
-
 function preflight_check() {
     fail="false"
 
