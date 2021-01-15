@@ -2,43 +2,24 @@
 
 set -euo pipefail
 
-function usage() {
-    cat <<EOF
-download-tools (all|helm|kustomize|k3d|kubectl|notary)
-
-This script will download and verify a number of tools for you
-into the bin directory of the repository root. It is tested for linux and mac.
-EOF
-
-    exit 1
-}
-
-curl_found="false"
-wget_found="false"
-
 function detect_download_tool() {
-    if command -v curl > /dev/null ; then
-        curl_found="true"
-
-    elif command -v wget > /dev/null ; then
-        wget_found="true"
-
-    else
-        printf "curl or wget not found.\n"
+    if ! command -v curl > /dev/null ; then
+        printf "curl not found.\n"
         exit 1
     fi
 }
 
-detect_download_tool
 
-# move to the repo root
-cd "$(dirname $0)/.."
+function make_bin_and_cd() {
+    # move to the repo root
+    cd "$(dirname $0)/.."
 
-if ! [ -d bin ]; then
-    mkdir bin
-fi
+    if ! [ -d bin ]; then
+        mkdir bin
+    fi
 
-cd bin
+    cd bin
+}
 
 if [ "$OSTYPE" = "linux-gnu" ]; then
     NOTARY_URL=https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
@@ -76,101 +57,61 @@ elif [ "$OSTYPE" = "darwin" ]; then
 fi
 
 function validate_binary() {
-    echo "$1  $2" | sha256sum -c -
+    echo "$1  $2" | sha256sum --status -c -
     chmod +x $2
 }
 
-function download_notary() {
-    printf "Downloading and validating Notary\n"
+function download_required() {
+    printf "## Downloading binaries\n"
+    printf "kubectl\t\t"
+    curl -sSfLo kubectl $KUBECTL_URL
+    printf "✓\n"
 
-    if $wget_found = "true"; then
-        wget -qO notary $NOTARY_URL
-    elif $curl_found = "true"; then
-        curl -sSfLo notary $NOTARY_URL
-    fi
+    printf "kustomize\t"
+    curl -sSfL $KUSTOMIZE_URL | tar xz
+    printf "✓\n"
 
-    validate_binary $NOTARY_SHASUM notary
-}
+    printf "helm\t\t"
+    curl -sSfL $HELM_URL | tar xzOf - ${HELM_BINARY_PATH} > helm
+    printf "✓\n"
 
-function download_k3d() {
-    printf "Downloading and validating k3d\n"
+    printf "k3d\t\t"
+    curl -sSfLo k3d $K3D_URL
+    printf "✓\n"
 
-    if $wget_found = "true"; then
-        wget -qO k3d $K3D_URL
-    elif $curl_found = "true"; then
-        curl -sSfLo k3d $K3D_URL
-    fi
+    printf "notary\t\t"
+    curl -sSfLo notary $NOTARY_URL
+    printf "✓\n"
 
-    validate_binary $K3D_SHASUM k3d
-}
-
-function download_kubectl() {
-    printf "Downloading and validating kubectl\n"
-
-    if $wget_found = "true"; then
-        wget -qO kubectl $KUBECTL_URL
-    elif $curl_found = "true"; then
-        curl -sSfLo kubectl $KUBECTL_URL
-    fi
-
+    printf "\n## Validating binaries\n"
+    printf "kubectl\t\t"
     validate_binary $KUBECTL_SHASUM kubectl
-}
+    printf "✓\n"
 
-function download_kustomize() {
-    printf "Downloading and validating Kustomize\n"
-
-    if $wget_found = "true"; then
-        wget -qO - $KUSTOMIZE_URL | tar xz
-    elif $curl_found = "true"; then
-        curl -sSfL $KUSTOMIZE_URL | tar xz
-    fi
-
+    printf "kustomize\t"
     validate_binary $KUSTOMIZE_SHASUM kustomize
-}
+    printf "✓\n"
 
-function download_helm() {
-    printf "Downloading and validating Helm\n"
-
-    if $wget_found = "true"; then
-        wget -qO - $HELM_URL | tar xzOf - ${HELM_BINARY_PATH} > helm
-    elif $curl_found = "true"; then
-        curl -sSfL $HELM_URL | tar xzOf - ${HELM_BINARY_PATH} > helm
-    fi
-
+    printf "helm\t\t"
     validate_binary $HELM_SHASUM helm
+    printf "✓\n"
+
+    printf "k3d\t\t"
+    validate_binary $K3D_SHASUM k3d
+    printf "✓\n"
+
+    printf "notary\t\t"
+    validate_binary $NOTARY_SHASUM notary
+    printf "✓\n"
 }
 
+function print_path_message() {
+    printf "\nDo not forget to add the $PWD directory to your path so other\n\
+scripts can use these binaries. Run the following command in the root of\n\
+this repository to enable the bin folder for this terminal.\n\n export PATH=\$PATH:\$PWD/bin\n"
+}
 
-case "${1-}" in
-    "all") 
-        download_kubectl
-        download_helm
-        download_kustomize
-        download_notary
-        download_k3d
-    ;;
-
-    "helm")
-        download_helm
-    ;;
-
-    "kustomize")
-        download_kustomize
-    ;;
-
-    "notary")
-        download_notary
-    ;;
-
-    "k3d")
-        download_k3d
-    ;;
-
-    "kubectl")
-        download_kubectl
-    ;;
-
-    *)
-        usage
-    ;;
-esac
+detect_download_tool
+make_bin_and_cd
+download_required
+print_path_message

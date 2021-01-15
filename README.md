@@ -8,7 +8,49 @@
 
 ## Quick Start
 
-1.  Run the `scripts/download-tools.sh` script to pull in any tools required.
+1.  Run `scripts/preflight-check.sh` to determine if your system is ready for
+    deployment. On this machine none of the binaries are installed, docker is running
+    but kubernetes's status is unknown as we don't have kubectl available.
+
+    ```bash
+    $ ./scripts/preflight-check.sh
+    Looking for required binaries
+
+    kubectl installed       x
+    kustomize installed     x
+    helm installed          x
+
+    Some binaries are missing.
+    Check that the required tools are installed in your PATH.
+    You can use the 'download-tools.sh' script in the scripts directory to download any missing tools.
+    Looking for required services
+
+    docker:                 ✓
+    kubernetes:             x       (kubectl binary not found)
+    ```
+
+    If everything checks out it should look like this and you can continue to step 4
+    to deploy everything.
+
+    ```bash
+    $ ./scripts/preflight-check.sh
+    Looking for required binaries
+
+    kubectl installed       ✓       (/home/.../bin/kubectl)
+    kustomize installed     ✓       (/home/.../bin/kustomize)
+    helm installed          ✓       (/home/.../bin/helm)
+
+    All required binaries found.
+
+    Looking for required services
+
+    docker:                 ✓
+    kubernetes:             ✓       (context: k3d-k3s-default)
+
+    All checks passed.
+    ```
+
+2.  Run the `scripts/download-tools.sh` script to pull in any tools required.
     The script will create a `bin` folder at the root of the repo and then
     downloads and verifies them before making them executable. If you want the
     scripts to use these tools automatically you'll have to add the `bin` folder
@@ -16,79 +58,27 @@
     terminal.
 
     ```bash
-    $ ./scripts/download-tools.sh all
-    Downloading and validating kubectl
-    kubectl: OK
-    Downloading and validating Helm
-    helm: OK
-    Downloading and validating Kustomize
-    kustomize: OK
-    Downloading and validating Notary
-    notary: OK
-    Downloading and validating k3d
-    k3d: OK
+    $ ./scripts/download-tools.sh
+    ## Downloading binaries
+    kubectl         ✓
+    kustomize       ✓
+    helm            ✓
+    k3d             ✓
+    notary          ✓
 
-    $ kubectl version
-    kubectl: command not found...
+    ## Validating binaries
+    kubectl         ✓
+    kustomize       ✓
+    helm            ✓
+    k3d             ✓
+    notary          ✓
 
-    $ export PATH=$PATH:$PWD/bin
+    Do not forget to add the /home/rio/Documents/code/github.com/Rio/rp1-docker-notary/bin directory to your path so other
+    scripts can use these binaries.
 
-    $ kubectl version
-    Client Version: version.Info{Major:"1", Minor:"20", GitVersion:"v1.20.0", GitCommit:"af46c47ce925f4c4ad5cc8d1fca46c7b77d13b38", GitTreeState:"clean", BuildDate:"2020-12-08T17:59:43Z", GoVersion:"go1.15.5", Compiler:"gc", Platform:"linux/amd64"}
-    Server Version: version.Info{Major:"1", Minor:"19", GitVersion:"v1.19.4+k3s1", GitCommit:"2532c10faad43e2b6e728fdcc01662dc13d37764", GitTreeState:"clean", BuildDate:"2020-11-18T22:11:18Z", GoVersion:"go1.15.2", Compiler:"gc", Platform:"linux/amd64"}
-    ```
+    Run the following command in the root ofthis repository to enable the bin folder for this terminal.
 
-2.  Verify that docker is running and reachable.
-
-    ```bash
-    $ docker info
-    Client:
-    Debug Mode: false
-
-    Server:
-    Containers: 0
-    Running: 0
-    Paused: 0
-    Stopped: 0
-    Images: 5
-    Server Version: 19.03.11
-    Storage Driver: overlay2
-    Backing Filesystem: extfs
-    Supports d_type: true
-    Native Overlay Diff: true
-    Logging Driver: journald
-    Cgroup Driver: systemd
-    Plugins:
-    Volume: local
-    Network: bridge host ipvlan macvlan null overlay
-    Log: awslogs fluentd gcplogs gelf journald json-file local logentries splunk syslog
-    Swarm: inactive
-    Runtimes: runc
-    Default Runtime: runc
-    Init Binary: /usr/libexec/docker/docker-init
-    containerd version:
-    runc version:
-    init version:
-    Security Options:
-    seccomp
-    Profile: default
-    selinux
-    Kernel Version: 5.9.16-100.fc32.x86_64
-    Operating System: Fedora 32 (Workstation Edition)
-    OSType: linux
-    Architecture: x86_64
-    CPUs: 8
-    Total Memory: 15.34GiB
-    Name: starscream
-    ID: JIH4:4C4B:SKSS:IMSX:QD3U:QTBH:RPK3:C2BI:GTD6:JGDK:YDRU:JFRN
-    Docker Root Dir: /var/lib/docker
-    Debug Mode: false
-    Registry: https://index.docker.io/v1/
-    Labels:
-    Experimental: false
-    Insecure Registries:
-    127.0.0.0/8
-    Live Restore Enabled: true
+    export PATH=$PATH:$PWD/bin
     ```
 
 3.  Run the `scripts/create-k3d-cluster.sh` to start a kubernetes cluster in docker.
@@ -109,26 +99,15 @@
     kubectl cluster-info
     ```
 
-4.  Verify that the cluster is reachable using the kubectl command.
-
-    ```bash
-    $ kubectl get nodes
-    NAME                       STATUS   ROLES    AGE   VERSION
-    k3d-k3s-default-server-0   Ready    master   37s   v1.19.4+k3s1
-    ```
-
-5.  Deploy all services using the `scripts/deploy.sh` script. The commands
+4.  Deploy all services using the `scripts/deploy.sh` script. The commands
     executed by the script are idempotent. If anything goes wrong during installation
     like a timeout is reached because of a slow or disconnected internet connection
     you can just rerun the script.
 
     ```bash
-    Checking if kubectl is installed.
-    Checking if kustomize is installed.
-    Checking if helm is installed.
-    All required binaries found.
-
+    $ ./scripts/deploy.sh
     ### Installing cert-manager
+
     customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
     customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
     customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
@@ -137,6 +116,7 @@
     # ... snip lots of output ...
 
     ### Deploying notary and registry
+
     namespace/notary created
     configmap/notaryserver-9g226fhg7t created
     configmap/notarysigner-hc4767dmg9 created
@@ -158,15 +138,17 @@
     ingress.networking.k8s.io/notary created
 
     ### Waiting for migration job to complete
+
     job.batch/migrate condition met
 
     ### Waiting for deployments to report ready
+
     deployment.apps/notarysigner condition met
     deployment.apps/registry condition met
     deployment.apps/notaryserver condition met
     ```
 
-6.  Validate that we can reach the registry by retagging an image and pushing it.
+5.  Validate that we can reach the registry by retagging an image and pushing it.
 
     ```bash
     $ docker pull alpine:3.13
@@ -183,7 +165,7 @@
     3.13: digest: sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515 size: 528
     ```
 
-7.  Generate a key that we can use for signing images using the `docker trust` commands.
+6.  Generate a key that we can use for signing images using the `docker trust` commands.
 
     ```bash
     $ docker trust key generate my-signing-role
@@ -193,7 +175,7 @@
     Successfully generated and loaded private key. Corresponding public key available: /home/user/rp1-docker-notary/my-signing-role.pub
     ```
 
-8.  Add the previously generated key as a singer for this image repository. This
+7.  Add the previously generated key as a singer for this image repository. This
     will generate a root key for this repository and a repository key.
 
     ```bash
@@ -214,7 +196,7 @@
     Successfully added signer: my-signing-role to localhost/library/alpine
     ```
 
-9.  Tag and sign a new image using your newly generated keys. This will automatically
+8.  Tag and sign a new image using your newly generated keys. This will automatically
     trigger a push.
 
     ```bash
@@ -229,7 +211,7 @@
     Successfully signed localhost/library/alpine:signed
     ```
 
-10. Remove both the signed and unsigned image to validate that docker will allow
+9.  Remove both the signed and unsigned image to validate that docker will allow
     the signed image to be pulled and the unsigned image will be blocked. We enable
     this on `docker pull` and `docker push` commands by setting the `DOCKER_CONTENT_TRUST=1`
     environment variable.
@@ -252,7 +234,7 @@
     localhost/library/alpine:signed
     ```
 
-11. Finally you can inspect the images using the `docker trust inspect` command.
+10. Finally you can inspect the images using the `docker trust inspect` command.
     Notice the missing signatures on the unsigned image.
 
     ```bash
