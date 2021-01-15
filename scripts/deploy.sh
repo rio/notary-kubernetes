@@ -38,18 +38,14 @@ function preflight_check() {
 
 preflight_check
 
-printf "### Installing cert-manager"
-kustomize build deploy/dependencies/cert-manager | kubectl apply -f -
+printf "### Installing cert-manager\n"
+kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
 
-echo -e "\n### Adding required helm repos"
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo add traefik https://helm.traefik.io/traefik
-helm repo update
+printf "#### Installing traefik using helm cli\n"
+helm upgrade --install --namespace traefik-system --create-namespace traefik --repo https://helm.traefik.io/traefik traefik --version 9.12.3
 
-echo -e "\n#### Installing traefik using helm cli"
-helm upgrade --install --namespace traefik-system --create-namespace traefik traefik/traefik --version 9.12.3
-
-cat > mariadb-values.yaml <<EOF
+echo -e "\n#### Installing mariadb using helm cli"
+helm upgrade --install --namespace mariadb --create-namespace mariadb --repo https://charts.bitnami.com/bitnami mariadb --version 9.2.2 --values - <<EOF
 auth:
     rootPassword: root
 
@@ -69,12 +65,6 @@ initdbScripts:
         GRANT ALL PRIVILEGES ON notaryserver.* TO 'server'@'%';
 EOF
 
-echo -e "\n#### Installing mariadb using helm cli"
-helm upgrade --install --namespace mariadb --create-namespace mariadb bitnami/mariadb --version 9.2.2 --values mariadb-values.yaml
-
-echo -e "\n### Waiting for cert-manager to report ready"
-kubectl wait --for=condition=Available deployments --all --namespace cert-manager   --timeout=${GLOBAL_TIMEOUT}
-
 echo -e "\n### Waiting for traefik to report ready"
 kubectl wait --for=condition=Available deployments --all --namespace traefik-system  --timeout=${GLOBAL_TIMEOUT}
 
@@ -82,7 +72,7 @@ echo -e "\n### Waiting for mariadb to report ready"
 kubectl wait --for=condition=Ready pods mariadb-0 --namespace mariadb  --timeout=${GLOBAL_TIMEOUT}
 
 echo -e "\n### Deploying notary and registry"
-kustomize build deploy/notary-registry | kubectl apply -f -
+kustomize build deploy | kubectl apply -f -
 
 echo -e "\n### Waiting for migration job to complete"
 kubectl wait --for=condition=Complete  jobs        --all --namespace notary --timeout=${GLOBAL_TIMEOUT}

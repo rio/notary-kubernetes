@@ -1,8 +1,4 @@
-kubeconfig
-certs
-mariadb-values.yaml
-k3d
-kustomize
-notary
-helm
-kind-config.yaml
+/k3d
+/kustomize
+/notary
+/helm
