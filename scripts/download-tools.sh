@@ -4,7 +4,7 @@ set -euo pipefail
 
 function usage() {
     cat <<EOF
-download-tools (all|helm|kustomize|k3d|notary)
+download-tools (all|helm|kustomize|k3d|kubectl|notary)
 
 This script will download and verify a number of tools for you
 into the bin directory of the repository root. It is tested for linux and mac.
@@ -50,6 +50,9 @@ if [ "$OSTYPE" = "linux-gnu" ]; then
     K3D_URL=https://github.com/rancher/k3d/releases/download/v3.4.0/k3d-linux-amd64
     K3D_SHASUM=1c961f1161d7b7fb55658ee32081b250a0da6d5f81e40c307a0300e3e130d19f
 
+    KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/v1.20.0/bin/linux/amd64/kubectl
+    KUBECTL_SHASUM=a5895007f331f08d2e082eb12458764949559f30bcc5beae26c38f3e2724262c
+
     HELM_URL=https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz
     HELM_BINARY_PATH=linux-amd64/helm
     HELM_SHASUM=d14d54d59558caebe234500f541fc2064b08d725ed8aa76f957f91c8d6a0fc46
@@ -63,6 +66,9 @@ elif [ "$OSTYPE" = "darwin" ]; then
 
     K3D_URL=https://github.com/rancher/k3d/releases/download/v3.4.0/k3d-darwin-amd64
     K3D_SHASUM=54b9b855eddcc3408fbd4f16eaafa6fffd54b17b7224ebe469ce0b2afe9e674c
+
+    KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/v1.20.0/bin/darwin/amd64/kubectl
+    KUBECTL_SHASUM=82046a4abb056005edec097a42cc3bb55d1edd562d6f6f38c07318603fcd9fca
 
     HELM_URL=https://get.helm.sh/helm-v3.4.2-darwin-amd64.tar.gz
     HELM_BINARY_PATH=darwin-amd64/helm
@@ -98,6 +104,18 @@ function download_k3d() {
     validate_binary $K3D_SHASUM k3d
 }
 
+function download_kubectl() {
+    printf "Downloading and validating kubectl\n"
+
+    if $wget_found = "true"; then
+        wget -qO kubectl $KUBECTL_URL
+    elif $curl_found = "true"; then
+        curl -sSfLo kubectl $KUBECTL_URL
+    fi
+
+    validate_binary $KUBECTL_SHASUM kubectl
+}
+
 function download_kustomize() {
     printf "Downloading and validating Kustomize\n"
 
@@ -125,6 +143,7 @@ function download_helm() {
 
 case "${1-}" in
     "all") 
+        download_kubectl
         download_helm
         download_kustomize
         download_notary
@@ -145,6 +164,10 @@ case "${1-}" in
 
     "k3d")
         download_k3d
+    ;;
+
+    "kubectl")
+        download_kubectl
     ;;
 
     *)
