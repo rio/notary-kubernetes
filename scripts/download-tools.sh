@@ -7,7 +7,7 @@ function usage() {
 download-tools (all|helm|kustomize|k3d|notary)
 
 This script will download and verify a number of tools for you
-into the current directory. It is tested for linux and mac.
+into the bin directory of the repository root. It is tested for linux and mac.
 EOF
 
     exit 1
@@ -31,6 +31,14 @@ function detect_download_tool() {
 
 detect_download_tool
 
+# move to the repo root
+cd "$(dirname $0)/.."
+
+if ! [ -d bin ]; then
+    mkdir bin
+fi
+
+cd bin
 
 if [ "$OSTYPE" = "linux-gnu" ]; then
     NOTARY_URL=https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
