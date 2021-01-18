@@ -3,8 +3,7 @@
 ## Requirements
 
 - Docker installed and running.
-- Either curl or wget when using scripts/download-tools.sh to download other
-  required binaries.
+- curl when using scripts/download-tools.sh to download other required binaries.
 
 ## Quick Start
 
