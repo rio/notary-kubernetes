@@ -50,7 +50,7 @@ function preflight_check() {
         printf "$output\n\n"
         fail="true"
     else
-        printf "✓\t(server version:$(docker version -f '{{.Server.Version}}'))\n"
+        printf "✓\t(version: $(docker version -f '{{.Server.Version}}'))\n"
     fi
 
     printf "kubernetes:\t\t"
@@ -64,7 +64,7 @@ function preflight_check() {
         printf "$output\n\n"
         fail="true"
     else
-        printf "✓\t(context: $(kubectl config current-context)\tuser: $(kubectl config view --minify -o jsonpath='{.users[0].name}')\tserver: $(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'))\n"
+        printf "✓\t(version: $(kubectl version --short | tail -n 1 | tr -d " ")\tcontext: $(kubectl config current-context)\tuser: $(kubectl config view --minify -o jsonpath='{.users[0].name}'))\n"
     fi
 
     if $fail == "true"; then

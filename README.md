@@ -35,16 +35,16 @@
     $ ./scripts/preflight-check.sh
     Looking for required binaries
 
-    kubectl installed       ✓       (/home/.../bin/kubectl)
-    kustomize installed     ✓       (/home/.../bin/kustomize)
-    helm installed          ✓       (/home/.../bin/helm)
+    kubectl installed       ✓       (version: Client Version: v1.20.0                       path: /home/.../bin/kubectl)
+    kustomize installed     ✓       (version: {kustomize/v3.8.9  2020-12-29T15:49:08Z  }    path: /home/.../bin/kustomize)
+    helm installed          ✓       (version: v3.4.2+g23dd3af                               path: /home/.../bin/helm)
 
     All required binaries found.
 
     Looking for required services
 
-    docker:                 ✓
-    kubernetes:             ✓       (context: k3d-k3s-default)
+    docker:                 ✓       (version: 19.03.11)
+    kubernetes:             ✓       (version: ServerVersion:v1.19.4+k3s1    context: k3d-k3s-default        user: admin@k3d-k3s-default)
 
     All checks passed.
     ```
