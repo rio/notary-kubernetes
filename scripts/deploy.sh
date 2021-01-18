@@ -6,6 +6,8 @@ cd "$(dirname $0)/.."
 
 GLOBAL_TIMEOUT=5m
 
+printf "## Global timeout: ${GLOBAL_TIMEOUT}\n\n"
+
 printf "### Installing cert-manager\n\n"
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
 
@@ -37,7 +39,7 @@ printf "\n### Waiting for traefik to report ready\n\n"
 kubectl wait --for=condition=Available deployments --all --namespace traefik-system  --timeout=${GLOBAL_TIMEOUT}
 
 printf "\n### Waiting for mariadb to report ready\n\n"
-kubectl wait --for=condition=Ready pods mariadb-0 --namespace mariadb  --timeout=${GLOBAL_TIMEOUT}
+kubectl rollout status statefulsets/mariadb --namespace mariadb --timeout=${GLOBAL_TIMEOUT}
 
 printf "\n### Deploying notary and registry\n\n"
 kustomize build deploy | kubectl apply -f -
