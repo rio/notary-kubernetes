@@ -15,9 +15,18 @@ printf "\n#### Installing traefik\n\n"
 helm upgrade --install --namespace traefik-system --create-namespace traefik --repo https://helm.traefik.io/traefik traefik --version 9.12.3
 
 printf "\n#### Installing mariadb\n\n"
-helm upgrade --install --namespace mariadb --create-namespace mariadb --repo https://charts.bitnami.com/bitnami mariadb --version 9.2.2 --values - <<EOF
+# work around to make this script idempotent. The helm chart doesn't allow
+# running an upgrade without providing it the root password.
+if kubectl get secret mariadb --namespace mariadb > /dev/null 2>&1 ; then
+    printf "Found mariadb secret, reusing root password\n"
+    MARIADB_ROOT_PASSWORD_VALUES_BLOCK="
 auth:
-    rootPassword: root
+    rootPassword: $(kubectl get secret mariadb --namespace mariadb -o jsonpath='{.data.mariadb-root-password}' | base64 -d)
+"
+fi
+
+helm upgrade --install --namespace mariadb --create-namespace mariadb --repo https://charts.bitnami.com/bitnami mariadb --version 9.2.2 --values - <<EOF
+${MARIADB_ROOT_PASSWORD_VALUES_BLOCK:-}
 
 primary:
     persistence:
