@@ -14,7 +14,7 @@ function preflight_check() {
         printf "x\n"
         fail="true"
     else
-        printf "✓\t($(command -v kubectl))\n"
+        printf "✓\t(version: $(kubectl version --short --client)\t\t\tpath: $(command -v kubectl))\n"
     fi
 
     printf "kustomize installed\t"
@@ -22,7 +22,7 @@ function preflight_check() {
         printf "x\n"
         fail="true"
     else
-        printf "✓\t($(command -v kustomize))\n"
+        printf "✓\t(version: $(kustomize version --short)\tpath: $(command -v kustomize))\n"
     fi
 
     printf "helm installed\t\t"
@@ -30,7 +30,7 @@ function preflight_check() {
         printf "x\n"
         fail="true"
     else
-        printf "✓\t($(command -v helm))\n"
+        printf "✓\t(version: $(helm version --short)\t\t\t\tpath: $(command -v helm))\n"
     fi
 
     if $fail = "true" ; then
@@ -50,7 +50,7 @@ function preflight_check() {
         printf "$output\n\n"
         fail="true"
     else
-        printf "✓\n"
+        printf "✓\t(server version:$(docker version -f '{{.Server.Version}}'))\n"
     fi
 
     printf "kubernetes:\t\t"
@@ -64,7 +64,7 @@ function preflight_check() {
         printf "$output\n\n"
         fail="true"
     else
-        printf "✓\t(context: $(kubectl config current-context))\n"
+        printf "✓\t(context: $(kubectl config current-context)\tuser: $(kubectl config view --minify -o jsonpath='{.users[0].name}')\tserver: $(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}'))\n"
     fi
 
     if $fail == "true"; then
