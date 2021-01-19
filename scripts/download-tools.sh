@@ -21,7 +21,7 @@ function make_bin_and_cd() {
     cd bin
 }
 
-if [ "$OSTYPE" = "linux-gnu" ]; then
+if [ "$OSTYPE" = "linux-gnu" ] || [ "$OSTYPE" = "linux-musl" ]; then
     NOTARY_URL=https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
     NOTARY_SHASUM=73353b2b4b85604c738a6800465133cb3a828dff0aa26f3c0926dd9a73e19879
 
@@ -57,7 +57,7 @@ elif [ "$OSTYPE" = "darwin" ]; then
 fi
 
 function validate_binary() {
-    echo "$1  $2" | sha256sum --status -c -
+    echo "$1  $2" | sha256sum -s -c -
     chmod +x $2
 }
 
