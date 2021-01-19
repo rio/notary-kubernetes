@@ -103,6 +103,16 @@ dind
 
     ```
     ~/rp1-docker-notary # ./scripts/create-k3d-cluster.sh
+    + k3d cluster create --k3s-server-arg=--disable=traefik --port 80:80@loadbalancer --port 443:443@loadbalancer
+    INFO[0000] Created network 'k3d-k3s-default'
+    INFO[0000] Created volume 'k3d-k3s-default-images'
+    INFO[0001] Creating node 'k3d-k3s-default-server-0'
+    INFO[0005] Creating LoadBalancer 'k3d-k3s-default-serverlb'
+    INFO[0006] (Optional) Trying to get IP of the docker host and inject it into the cluster as 'host.k3d.internal' for easy access
+    INFO[0009] Successfully added host record to /etc/hosts in 2/2 nodes and to the CoreDNS ConfigMap
+    INFO[0009] Cluster 'k3s-default' created successfully!
+    INFO[0009] You can now use it like this:
+    kubectl cluster-info
     ```
 
 3.  Run `scripts/preflight-check.sh` to determine if your system is ready for
