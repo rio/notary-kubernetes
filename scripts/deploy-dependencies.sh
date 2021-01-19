@@ -13,9 +13,10 @@ kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1
 
 printf "\n### Deploying traefik\n\n"
 helm upgrade --install --namespace traefik-system --create-namespace traefik --repo https://helm.traefik.io/traefik traefik --version 9.12.3 > /dev/null
+printf "\n"
 helm list --namespace traefik-system
 
-printf "\n### Deploying mariadb\n\n"
+printf "### Deploying mariadb\n\n"
 # work around to make this script idempotent. The helm chart doesn't allow
 # running an upgrade without providing it the root password.
 if kubectl get secret mariadb --namespace mariadb > /dev/null 2>&1 ; then
@@ -47,7 +48,7 @@ EOF
 
 helm list --namespace mariadb
 
-printf "\n### Waiting for traefik to report ready\n\n"
+printf "### Waiting for traefik to report ready\n\n"
 kubectl wait --for=condition=Available deployments --all --namespace traefik-system  --timeout=${GLOBAL_TIMEOUT}
 
 printf "\n### Waiting for mariadb to report ready\n\n"
