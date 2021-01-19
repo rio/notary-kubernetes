@@ -105,34 +105,50 @@
 
     ```bash
     $ ./scripts/deploy.sh
-    ### Installing cert-manager
+    # Deploying dependencies
+
+    ## Timeout when deploying dependencies: 5m
+
+    ### Deploying cert-manager
 
     customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
     customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
     customresourcedefinition.apiextensions.k8s.io/challenges.acme.cert-manager.io created
-    customresourcedefinition.apiextensions.k8s.io/clusterissuers.cert-manager.io created
+    ...snip...
+    deployment.apps/cert-manager created
+    deployment.apps/cert-manager-webhook created
+    mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
+    validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
 
-    # ... snip lots of output ...
+    ### Deploying traefik
+
+    NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+    traefik traefik-system  2               2021-01-18 23:21:02.93080462 +0100 CET  deployed        traefik-9.12.3  2.3.6
+
+    ### Deploying mariadb
+
+    NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+    mariadb mariadb         2               2021-01-18 23:21:09.06076444 +0100 CET  deployed        mariadb-9.2.2   10.5.8
+
+    ### Waiting for traefik to report ready
+
+    deployment.apps/traefik condition met
+
+    ### Waiting for mariadb to report ready
+
+    statefulset rolling update complete 1 pods at revision mariadb-d766ccf4f...
+
+    ## Deploying dependencies complete
+
+    # Deploying Notary and the registry
+
+    ## Timeout when deploying Notary and the registry: 5m
 
     ### Deploying notary and registry
 
     namespace/notary created
     configmap/notaryserver-9g226fhg7t created
-    configmap/notarysigner-hc4767dmg9 created
-    configmap/scripts-k7fkbhf5gh created
-    secret/notary-ca created
-    secret/notaryserver-82f9bt4cct created
-    secret/notarysigner-td6hb4gbht created
-    service/notaryserver created
-    service/notarysigner created
-    service/registry created
-    deployment.apps/notaryserver created
-    deployment.apps/notarysigner created
-    deployment.apps/registry created
-    job.batch/migrate created
-    certificate.cert-manager.io/notaryserver-tls created
-    certificate.cert-manager.io/notarysigner-tls created
-    certificate.cert-manager.io/registry-tls created
+    ...snip...
     issuer.cert-manager.io/notary-ca created
     ingress.networking.k8s.io/notary created
 
@@ -142,9 +158,13 @@
 
     ### Waiting for deployments to report ready
 
-    deployment.apps/notarysigner condition met
     deployment.apps/registry condition met
+    deployment.apps/notarysigner condition met
     deployment.apps/notaryserver condition met
+
+    ## Deploying notary and registry complete
+
+    # Deployment complete
     ```
 
 5.  Validate that we can reach the registry by retagging an image and pushing it.
