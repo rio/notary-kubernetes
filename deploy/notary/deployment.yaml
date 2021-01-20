@@ -33,6 +33,11 @@ spec:
             name: notaryserver-config
           - mountPath: /etc/notary/tls
             name: notaryserver-tls
+        securityContext:
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: true
       volumes:
         - name: notaryserver-config
           configMap:
@@ -42,6 +47,10 @@ spec:
           secret:
             secretName: notaryserver-tls
             optional: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
 
 ---
 
@@ -77,6 +86,11 @@ spec:
             name: notarysigner-config
           - mountPath: /etc/notary/tls
             name: notarysigner-tls
+        securityContext:
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: true
       volumes:
         - name: notarysigner-config
           configMap:
@@ -86,3 +100,7 @@ spec:
           secret:
             secretName: notarysigner-tls
             optional: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
