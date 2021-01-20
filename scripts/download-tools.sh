@@ -57,7 +57,7 @@ elif [ "$OSTYPE" = "darwin" ]; then
 fi
 
 function validate_binary() {
-    echo "$1  $2" | sha256sum -s -c -
+    echo "$1  $2" | sha256sum -c -
     chmod +x $2
 }
 
@@ -65,44 +65,30 @@ function download_required() {
     printf "## Downloading binaries\n"
     printf "kubectl\t\t"
     curl -sSfLo kubectl $KUBECTL_URL
-    printf "✓\n"
+    printf "DONE\n"
 
     printf "kustomize\t"
     curl -sSfL $KUSTOMIZE_URL | tar xz
-    printf "✓\n"
+    printf "DONE\n"
 
     printf "helm\t\t"
     curl -sSfL $HELM_URL | tar xzOf - ${HELM_BINARY_PATH} > helm
-    printf "✓\n"
+    printf "DONE\n"
 
     printf "k3d\t\t"
     curl -sSfLo k3d $K3D_URL
-    printf "✓\n"
+    printf "DONE\n"
 
     printf "notary\t\t"
     curl -sSfLo notary $NOTARY_URL
-    printf "✓\n"
+    printf "DONE\n"
 
     printf "\n## Validating binaries\n"
-    printf "kubectl\t\t"
     validate_binary $KUBECTL_SHASUM kubectl
-    printf "✓\n"
-
-    printf "kustomize\t"
     validate_binary $KUSTOMIZE_SHASUM kustomize
-    printf "✓\n"
-
-    printf "helm\t\t"
     validate_binary $HELM_SHASUM helm
-    printf "✓\n"
-
-    printf "k3d\t\t"
     validate_binary $K3D_SHASUM k3d
-    printf "✓\n"
-
-    printf "notary\t\t"
     validate_binary $NOTARY_SHASUM notary
-    printf "✓\n"
 }
 
 function print_path_message() {
