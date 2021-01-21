@@ -1,0 +1,7 @@
+{
+  "trust_dir" : "~/.docker/trust",
+  "remote_server": {
+    "url": "https://localhost",
+    "root_ca": "../deploy/certificates/root-ca/tls.crt"
+  }
+}

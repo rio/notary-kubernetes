@@ -5,8 +5,17 @@ namespace: notary
 
 resources:
 - notary-ca-issuer.yaml
-- notary-ca-secret.yaml
 
 - registry-tls-certificate.yaml
 - notaryserver-tls-certificate.yaml
 - notarysigner-tls-certificate.yaml
+
+secretGenerator:
+  - name: notary-ca
+    type: kubernetes.io/tls
+    files:
+      - root-ca/tls.crt
+      - root-ca/tls.key
+
+generatorOptions:
+  disableNameSuffixHash: true
