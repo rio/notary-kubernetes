@@ -5,7 +5,9 @@ metadata:
 spec:
   secretName: registry-tls
   dnsNames:
+  - notary.localhost
   - registry.localhost
+  - localhost
   issuerRef:
     name: notary-ca
     kind: Issuer
