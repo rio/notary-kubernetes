@@ -14,9 +14,13 @@ spec:
       containers:
       - name: registry
         image: registry:2
-        env:
-        - name: REGISTRY_STORAGE_DELETE_ENABLED
-          value: "true"
+        volumeMounts:
+          - name: registry-config
+            mountPath: /etc/docker/registry
+            readOnly: true
+          - name: registry-tls
+            mountPath: /etc/docker/tls
+            readOnly: true
         resources:
           limits:
             memory: "128Mi"
@@ -24,3 +28,10 @@ spec:
         ports:
         - containerPort: 5000
           name: http
+      volumes:
+        - name: registry-config
+          configMap:
+            name: registry-config
+        - name: registry-tls
+          secret:
+            secretName: registry-tls

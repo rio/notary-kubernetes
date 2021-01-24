@@ -12,5 +12,7 @@ spec:
     - kind: Service
       name: registry
       port: 5000
+      scheme: https
+      serversTransport: registry-tls
   tls:
     secretName: registry-tls
