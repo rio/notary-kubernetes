@@ -4,19 +4,15 @@ kind: Kustomization
 namespace: notary
 
 resources:
+- migrate-job.yaml
 - deployment.yaml
 - service.yaml
-- migrate-job.yaml
 - ingressroute.yaml
 - serverstransport.yaml
 
 secretGenerator:
-  - name: notaryserver
-    literals:
-    - NOTARY_SERVER_STORAGE_DB_URL=server:server@tcp(mariadb.mariadb:3306)/notaryserver?parseTime=True
   - name: notarysigner
     literals:
-    - NOTARY_SIGNER_STORAGE_DB_URL=signer:signer@tcp(mariadb.mariadb:3306)/notarysigner?parseTime=True
     - NOTARY_SIGNER_NOTARYDEMOPASSWORD=demopassword
 
 configMapGenerator:
@@ -47,7 +43,8 @@ configMapGenerator:
                         "level": "info"
                 },
                 "storage": {
-                        "backend": "mysql"
+                        "backend": "postgres",
+                        "db_url": "postgres://server@notary-postgresql:5432/notaryserver?sslmode=verify-full&sslrootcert=/etc/notary/tls/ca.crt&sslcert=/etc/notary/tls/tls.crt&sslkey=/etc/notary/tls/tls.key"
                 }
         }
 
@@ -66,7 +63,8 @@ configMapGenerator:
                         "level": "info"
                 },
                 "storage": {
-                        "backend": "mysql",
+                        "backend": "postgres",
+                        "db_url": "postgres://signer@notary-postgresql:5432/notarysigner?sslmode=verify-full&sslrootcert=/etc/notary/tls/ca.crt&sslcert=/etc/notary/tls/tls.crt&sslkey=/etc/notary/tls/tls.key",
                         "default_alias": "notarydemopassword"
                 }
         }

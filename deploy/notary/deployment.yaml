@@ -11,14 +11,33 @@ spec:
       labels:
         app: notary
     spec:
+      initContainers:
+      - image: busybox
+        name: file-permissions-fixer
+        command:
+        - /bin/sh
+        - -cx
+        - |
+          cp -v /certs/raw/server/* /certs/memory/server/
+          cp -v /certs/raw/signer/* /certs/memory/signer/
+          chown 1000:1000 /certs/memory/server/* /certs/memory/signer/*
+          chmod 600 /certs/memory/server/* /certs/memory/signer/*
+
+        volumeMounts:
+          - mountPath: /certs/memory/server
+            name: owned-server-tls
+          - mountPath: /certs/memory/signer
+            name: owned-signer-tls
+          - mountPath: /certs/raw/server
+            name: notaryserver-tls
+          - mountPath: /certs/raw/signer
+            name: notarysigner-tls
+
       containers:
       - name: server
         image: notary:server-0.6.1-2
         args:
           - -config=/etc/notary/config/server-config.json
-        envFrom:
-          - secretRef:
-              name: notaryserver
         resources:
           limits:
             memory: "128Mi"
@@ -30,12 +49,13 @@ spec:
           - mountPath: /etc/notary/config
             name: notaryserver-config
           - mountPath: /etc/notary/tls
-            name: notaryserver-tls
+            name: owned-server-tls
         securityContext:
           capabilities:
             drop:
               - ALL
           readOnlyRootFilesystem: true
+
       - name: signer
         image: notary:signer-0.6.1-2
         args:
@@ -54,12 +74,13 @@ spec:
           - mountPath: /etc/notary/config
             name: notarysigner-config
           - mountPath: /etc/notary/tls
-            name: notarysigner-tls
+            name: owned-signer-tls
         securityContext:
           capabilities:
             drop:
               - ALL
           readOnlyRootFilesystem: true
+
       volumes:
         - name: notaryserver-config
           configMap:
@@ -77,7 +98,14 @@ spec:
           secret:
             secretName: notarysigner-tls
             optional: false
+        - name: owned-server-tls
+          emptyDir:
+            medium: Memory
+        - name: owned-signer-tls
+          emptyDir:
+            medium: Memory
+
       securityContext:
         runAsNonRoot: true
-        runAsUser: 1000
         runAsGroup: 1000
+        runAsUser: 1000

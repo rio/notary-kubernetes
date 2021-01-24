@@ -11,9 +11,6 @@ printf "## Timeout when deploying Notary and the registry: ${GLOBAL_TIMEOUT}\n\n
 printf "### Deploying notary and registry\n\n"
 kustomize build deploy | kubectl apply -f -
 
-printf "\n### Waiting for migration job to complete\n\n"
-kubectl wait --for=condition=Complete  jobs        --all --namespace notary --timeout=${GLOBAL_TIMEOUT}
-
 printf "\n### Waiting for deployments to report ready\n\n"
 kubectl wait --for=condition=Available deployments --all --namespace notary --timeout=${GLOBAL_TIMEOUT}
 
