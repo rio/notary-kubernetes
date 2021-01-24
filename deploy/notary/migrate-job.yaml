@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: migrate
 spec:
+  ttlSecondsAfterFinished: 30
   backoffLimit: 0
   template:
     spec:
@@ -10,19 +11,28 @@ spec:
       containers:
       - image: migrate/migrate:v4.14.1
         name: migrate
-        envFrom:
-          - secretRef:
-              name: notaryserver
-          - secretRef:
-              name: notarysigner
         command: ["/bin/sh", "-c"]
         args:
           - /scripts/migrate.sh
         volumeMounts:
           - name: scripts
             mountPath: /scripts
+          - name: notaryserver-tls
+            mountPath: /certs/server
+          - name: notarysigner-tls
+            mountPath: /certs/signer
       volumes:
         - name: scripts
           configMap:
             name: scripts
             defaultMode: 0700
+        - name: notarysigner-tls
+          secret:
+            secretName: notarysigner-tls
+            optional: false
+            defaultMode: 0500
+        - name: notaryserver-tls
+          secret:
+            secretName: notaryserver-tls
+            optional: false
+            defaultMode: 0500

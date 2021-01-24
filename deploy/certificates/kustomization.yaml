@@ -6,6 +6,7 @@ namespace: notary
 resources:
 - notary-ca-issuer.yaml
 
+- postgres-tls-certificate.yaml
 - registry-tls-certificate.yaml
 - notaryserver-tls-certificate.yaml
 - notarysigner-tls-certificate.yaml

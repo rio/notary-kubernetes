@@ -4,6 +4,7 @@ metadata:
   name: notaryserver-tls
 spec:
   secretName: notaryserver-tls
+  commonName: server
   dnsNames:
   - localhost
   - notaryserver
