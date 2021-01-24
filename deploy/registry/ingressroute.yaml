@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: registry
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - kind: Rule
+    match: PathPrefix(`/v2`)
+    services:
+    - kind: Service
+      name: registry
+      port: 5000
+  tls:
+    secretName: registry-tls
