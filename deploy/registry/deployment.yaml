@@ -21,6 +21,11 @@ spec:
           - name: registry-tls
             mountPath: /etc/docker/tls
             readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /v2/
+            port: 5000
+            scheme: HTTPS
         resources:
           limits:
             memory: "128Mi"

@@ -50,6 +50,11 @@ spec:
             name: notaryserver-config
           - mountPath: /etc/notary/tls
             name: owned-server-tls
+        livenessProbe:
+          httpGet:
+            path: /v2/
+            port: 4443
+            scheme: HTTPS
         securityContext:
           capabilities:
             drop:
