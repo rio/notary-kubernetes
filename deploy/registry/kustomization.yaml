@@ -7,3 +7,9 @@ resources:
 - deployment.yaml
 - service.yaml
 - ingressroute.yaml
+- serverstransport.yaml
+
+configMapGenerator:
+  - name: registry-config
+    files:
+      - config/config.yml
