@@ -12,7 +12,7 @@ printf "### Deploying cert-manager\n\n"
 kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.1.0/cert-manager.yaml
 
 printf "\n### Deploying traefik\n\n"
-helm upgrade --install --namespace traefik-system --create-namespace traefik --repo https://helm.traefik.io/traefik traefik --version 9.12.3 --values - > /dev/null <<EOF
+helm upgrade --install --namespace traefik-system --create-namespace traefik --repo https://helm.traefik.io/traefik traefik --version 9.13.0 --values - > /dev/null <<EOF
 logs:
     access:
         enabled: true

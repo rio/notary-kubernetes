@@ -16,6 +16,9 @@ secretGenerator:
     files:
       - root-ca/tls.crt
       - root-ca/tls.key
+  - name: notary-ca-cert
+    files:
+      - root-ca/tls.crt
 
 generatorOptions:
   disableNameSuffixHash: true

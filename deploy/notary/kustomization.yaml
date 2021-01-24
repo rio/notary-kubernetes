@@ -1,10 +1,14 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
+namespace: notary
+
 resources:
 - deployment.yaml
 - service.yaml
 - migrate-job.yaml
+- ingressroute.yaml
+- serverstransport.yaml
 
 secretGenerator:
   - name: notaryserver
@@ -26,11 +30,13 @@ configMapGenerator:
         server-config.json=
         {
                 "server": {
-                        "http_addr": ":4443"
+                        "http_addr": ":4443",
+                        "tls_key_file": "/etc/notary/tls/tls.key",
+                        "tls_cert_file": "/etc/notary/tls/tls.crt"
                 },
                 "trust_service": {
                         "type": "remote",
-                        "hostname": "notarysigner",
+                        "hostname": "localhost",
                         "port": "7899",
                         "key_algorithm": "ecdsa",
                         "tls_ca_file": "/etc/notary/tls/ca.crt",
@@ -51,7 +57,7 @@ configMapGenerator:
         signer-config.json=
         {
                 "server": {
-                        "grpc_addr": ":7899",
+                        "grpc_addr": "localhost:7899",
                         "tls_cert_file": "/etc/notary/tls/tls.crt",
                         "tls_key_file": "/etc/notary/tls/tls.key",
                         "client_ca_file": "/etc/notary/tls/ca.crt"

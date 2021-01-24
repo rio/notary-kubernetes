@@ -1,0 +1,8 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: ServersTransport
+metadata:
+  name: notary-tls
+spec:
+  serverName: notaryserver
+  rootCAsSecrets:
+    - notary-ca-cert

@@ -5,7 +5,7 @@ metadata:
 spec:
   secretName: notarysigner-tls
   dnsNames:
-  - notarysigner
+  - localhost
   issuerRef:
     name: notary-ca
     kind: Issuer

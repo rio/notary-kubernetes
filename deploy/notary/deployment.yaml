@@ -1,20 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notaryserver
+  name: notary
 spec:
   selector:
     matchLabels:
       app: notary
-      component: server
   template:
     metadata:
       labels:
         app: notary
-        component: server
     spec:
       containers:
-      - name: notaryserver
+      - name: server
         image: notary:server-0.6.1-2
         args:
           - -config=/etc/notary/config/server-config.json
@@ -27,12 +25,36 @@ spec:
             cpu: "500m"
         ports:
         - containerPort: 4443
-          name: grpc
+          name: http
         volumeMounts:
           - mountPath: /etc/notary/config
             name: notaryserver-config
           - mountPath: /etc/notary/tls
             name: notaryserver-tls
+        securityContext:
+          capabilities:
+            drop:
+              - ALL
+          readOnlyRootFilesystem: true
+      - name: signer
+        image: notary:signer-0.6.1-2
+        args:
+          - -config=/etc/notary/config/signer-config.json
+        envFrom:
+          - secretRef:
+              name: notarysigner
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 7899
+          name: grpc
+        volumeMounts:
+          - mountPath: /etc/notary/config
+            name: notarysigner-config
+          - mountPath: /etc/notary/tls
+            name: notarysigner-tls
         securityContext:
           capabilities:
             drop:
@@ -47,51 +69,6 @@ spec:
           secret:
             secretName: notaryserver-tls
             optional: false
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-
----
-
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: notarysigner
-spec:
-  selector:
-    matchLabels:
-      app: notary
-      component: signer
-  template:
-    metadata:
-      labels:
-        app: notary
-        component: signer
-    spec:
-      containers:
-      - name: notarysigner
-        image: notary:signer-0.6.1-2
-        args:
-          - -config=/etc/notary/config/signer-config.json
-        envFrom:
-          - secretRef:
-              name: notarysigner
-        resources:
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
-        volumeMounts:
-          - mountPath: /etc/notary/config
-            name: notarysigner-config
-          - mountPath: /etc/notary/tls
-            name: notarysigner-tls
-        securityContext:
-          capabilities:
-            drop:
-              - ALL
-          readOnlyRootFilesystem: true
-      volumes:
         - name: notarysigner-config
           configMap:
             name: notarysigner

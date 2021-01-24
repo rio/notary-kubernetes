@@ -1,0 +1,18 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: notary
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - kind: Rule
+    match: PathPrefix(`/v2/{repository:[a-z0-9/]+(?:[._-][a-z0-9/]+)*}/_trust`)
+    services:
+    - kind: Service
+      name: notary
+      port: 4443
+      scheme: https
+      serversTransport: notary-tls
+  tls:
+    secretName: notary-tls
