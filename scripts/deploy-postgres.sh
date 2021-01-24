@@ -18,7 +18,7 @@ tls:
   certCAFilename: ca.crt
 initdbScripts:
     create_signer_database.sql: |
-        CREATE USER signer LOGIN;
+        CREATE USER signer;
         CREATE DATABASE notarysigner WITH OWNER signer;
         GRANT ALL ON notarysigner TO signer;
 
