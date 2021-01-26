@@ -15,3 +15,6 @@ EOF
 
 printf "\n"
 helm list --namespace traefik-system
+
+printf "\n### Waiting for traefik to report ready\n"
+kubectl wait --for=condition=Available deployments --all --namespace traefik-system  --timeout=${GLOBAL_TIMEOUT}

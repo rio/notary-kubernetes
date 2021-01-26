@@ -17,13 +17,13 @@ export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE='repo'
 
 printf "# Exercising registry\n\n"
 
-printf "## Pulling alpine:3.13 image\n\n"
+printf "## Pulling alpine:3.12 image\n\n"
 
-docker pull alpine:3.13
+docker pull alpine:3.12
 
-printf "\n## Tagging alpine:3.13 as ${UNSIGNED}\n\n"
+printf "\n## Tagging alpine:3.12 as ${UNSIGNED}\n\n"
 
-(set -x; docker tag alpine:3.13 ${UNSIGNED} )
+(set -x; docker tag alpine:3.12 ${UNSIGNED} )
 
 printf "\n## Pushing ${UNSIGNED} image\n\n"
 
@@ -46,9 +46,9 @@ fi
 
 docker trust signer add --key $(hostname).pub $(hostname)  ${IMAGE_NAME}
 
-printf "\n## Tagging alpine:3.13 as ${SIGNED}\n\n"
+printf "\n## Tagging alpine:3.12 as ${SIGNED}\n\n"
 
-(set -x; docker tag alpine:3.13 ${SIGNED})
+(set -x; docker tag alpine:3.12 ${SIGNED})
 
 printf "\n## Signing and pushing ${SIGNED}\n\n"
 
