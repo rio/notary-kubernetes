@@ -4,6 +4,8 @@ set -euo pipefail
 
 cd "$(dirname $0)/.."
 
+HOSTNAME=$(hostname)
+
 REGISTRY_HOST=localhost
 REPOSITORY_NAME=library/alpine
 
@@ -33,18 +35,18 @@ printf "\n# Registry functional\n\n"
 
 printf "# Exercising Notary\n\n"
 
-if [ -f $(hostname).pub ]; then
-    printf "## Reusing $(hostname).pub public key.\n"
+if [ -f ${HOSTNAME,,}.pub ]; then
+    printf "## Reusing ${HOSTNAME,,}.pub public key.\n"
     printf "## If this is undesireable then delete this file.\n"
 else
-    printf "## Generating local trust keys for $(hostname) with passphrase '${DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE}'\n\n"
+    printf "## Generating local trust keys for ${HOSTNAME,,} with passphrase '${DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE}'\n\n"
 
-    docker trust key generate $(hostname)
+    docker trust key generate ${HOSTNAME,,}
 fi
 
-    printf "\n## Adding $(hostname).pub as signer for ${IMAGE_NAME} root passphrase '${DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE}' and repository passphrase '${DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE}'\n\n"
+    printf "\n## Adding ${HOSTNAME,,}.pub as signer for ${IMAGE_NAME} root passphrase '${DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE}' and repository passphrase '${DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE}'\n\n"
 
-docker trust signer add --key $(hostname).pub $(hostname)  ${IMAGE_NAME}
+docker trust signer add --key ${HOSTNAME,,}.pub ${HOSTNAME,,}  ${IMAGE_NAME}
 
 printf "\n## Tagging alpine:3.12 as ${SIGNED}\n\n"
 
