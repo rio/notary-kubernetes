@@ -1,0 +1,154 @@
+Script started on 2021-01-26 12:46:49+00:00 [TERM="xterm" TTY="/dev/pts/0" COLUMNS="239" LINES="59"]
+[2J[1;1H[33m[1m This demo runs locally on k3s witin a docker container.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m kubectl version --short
+Client Version: v1.20.0
+Server Version: v1.19.4+k3s1
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m kubectl config current-context
+k3d-k3s-default
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker version -f '{{.Server.Version}}'
+20.10.2
+[33m[1m[0m
+[33m[1m All our dependencies and services have already been deployed.[0m
+[33m[1m - cert-manager provisions all of our certificates.[0m
+[33m[1m - Traefik handles HTTPS Ingress Routing.[0m
+[33m[1m - PostgreSQL is our database backing Notary.[0m
+[33m[1m - Notary, the registry and have been deployed.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m kubectl get namespaces cert-manager traefik-system notary
+NAME             STATUS   AGE
+cert-manager     Active   16m
+traefik-system   Active   16m
+notary           Active   57s
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m kubectl get pod,certificates -n notary
+NAME                           READY   STATUS      RESTARTS   AGE
+pod/registry-cb64f96cc-77wr9   1/1     Running     0          58s
+pod/notary-postgresql-0        1/1     Running     0          63s
+pod/migrate-l5m7f              0/1     Completed   0          58s
+pod/notary-7cbc89d575-cmwkl    2/2     Running     4          58s
+
+NAME                                           READY   SECRET             AGE
+certificate.cert-manager.io/notarysigner-tls   True    notarysigner-tls   61s
+certificate.cert-manager.io/notaryserver-tls   True    notaryserver-tls   61s
+certificate.cert-manager.io/postgres-tls       True    postgres-tls       61s
+certificate.cert-manager.io/registry-tls       True    registry-tls       61s
+[33m[1m[0m
+[33m[1m Make sure no images are local and pull in an image.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker system prune --all --force
+Total reclaimed space: 0B
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker pull alpine:3.12
+3.12: Pulling from library/alpine
+
+[1A[2K801bfaa63ef2: Pulling fs layer [1B[1A[2K801bfaa63ef2: Downloading [>                                                  ]  29.17kB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [=====>                                             ]  301.5kB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [============>                                      ]  694.7kB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [==============>                                    ]  825.8kB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [=======================>                           ]  1.326MB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [============================>                      ]  1.588MB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [=================================>                 ]   1.85MB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [==================================>                ]  1.924MB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [=========================================>         ]   2.35MB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [=============================================>     ]  2.546MB/2.799MB[1B[1A[2K801bfaa63ef2: Downloading [===============================================>   ]  2.677MB/2.799MB[1B[1A[2K801bfaa63ef2: Download complete [1B[1A[2K801bfaa63ef2: Extracting [>                                                  ]  32.77kB/2.799MB[1B[1A[2K801bfaa63ef2: Extracting [==================================================>]  2.799MB/2.799MB[1B[1A[2K801bfaa63ef2: Pull complete [1BDigest: sha256:3c7497bf0c7af93428242d6176e8f7905f2201d8fc5861f45be7a346b5f23436
+Status: Downloaded newer image for alpine:3.12
+docker.io/library/alpine:3.12
+[33m[1m[0m
+[33m[1m Tag and push to verify our registry works. Then clean the system and verify[0m
+[33m[1m that pulling an image works.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker tag alpine:3.12 localhost/library/alpine:unsigned
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker push localhost/library/alpine:unsigned
+The push refers to repository [localhost/library/alpine]
+
+[1A[2K777b2c648970: Preparing [1B[1A[2K777b2c648970: Pushing [>                                                  ]  68.61kB/5.577MB[1B[1A[2K777b2c648970: Pushing [==============>                                    ]   1.64MB/5.577MB[1B[1A[2K777b2c648970: Pushing [=============================>                     ]  3.287MB/5.577MB[1B[1A[2K777b2c648970: Pushing [============================================>      ]  5.005MB/5.577MB[1B[1A[2K777b2c648970: Pushing [==================================================>]  5.848MB[1B[1A[2K777b2c648970: Pushed [1Bunsigned: digest: sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7 size: 528
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker system prune --all --force
+Deleted Images:
+untagged: alpine:3.12
+untagged: alpine@sha256:3c7497bf0c7af93428242d6176e8f7905f2201d8fc5861f45be7a346b5f23436
+untagged: localhost/library/alpine:unsigned
+untagged: localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+deleted: sha256:389fef7118515c70fd6c0e0d50bb75669942ea722ccb976507d7b087e54d5a23
+deleted: sha256:777b2c648970480f50f5b4d0af8f9a8ea798eea43dbcf40ce4a8c7118736bdcf
+
+Total reclaimed space: 5.577MB
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker pull localhost/library/alpine:unsigned
+unsigned: Pulling from library/alpine
+
+[1A[2K801bfaa63ef2: Pulling fs layer [1B[1A[2K801bfaa63ef2: Downloading [>                                                  ]  34.17kB/2.799MB[1B[1A[2K801bfaa63ef2: Verifying Checksum [1B[1A[2K801bfaa63ef2: Download complete [1B[1A[2K801bfaa63ef2: Extracting [>                                                  ]  32.77kB/2.799MB[1B[1A[2K801bfaa63ef2: Extracting [==================================================>]  2.799MB/2.799MB[1B[1A[2K801bfaa63ef2: Pull complete [1BDigest: sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+Status: Downloaded newer image for localhost/library/alpine:unsigned
+localhost/library/alpine:unsigned
+[33m[1m[0m
+[33m[1m Generate a key for this machine to use for signing and add it as a signer for[0m
+[33m[1m our repository We set some passphrases to help with this demo.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m export DOCKER_CONTENT_TRUST_ROOT_PASSPHRASE='demo-root'
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m export DOCKER_CONTENT_TRUST_REPOSITORY_PASSPHRASE='demo-repo'
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker trust key generate demo-signing-role
+Generating key for demo-signing-role...
+Successfully generated and loaded private key. Corresponding public key available: /live-demo/demo-signing-role.pub
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker trust signer add --key demo-signing-role.pub demo-signing-role localhost/library/alpine
+Adding signer "demo-signing-role" to localhost/library/alpine...
+Initializing signed repository for localhost/library/alpine...
+Successfully initialized "localhost/library/alpine"
+Successfully added signer: demo-signing-role to localhost/library/alpine
+
+[33m[1m[0m
+[33m[1m Verify that keys root and repository keys are generated and notary is[0m
+[33m[1m informed of the signer delegations.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m notary -c config/notary-client.json key list
+
+ROLE                 GUN                         KEY ID                                                              LOCATION
+----                 ---                         ------                                                              --------
+root                                             0056873351824c419fc22bf0501f9eca5a5688f137927b6b4dd38b42f6cca2e7    /root/.docker/trust/private
+demo-signing-role                                d52aba2ec7f7ccf22876028db889fd1e086395fcb0334be07e9453d2270169e7    /root/.docker/trust/private
+targets              localhost/library/alpine    d0f389b67fb0a6ee04805c51b6698f64b0b709c4b4a59f55177f935fd46efb93    /root/.docker/trust/private
+
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m notary -c config/notary-client.json delegation list localhost/library/alpine
+
+ROLE                         PATHS             KEY IDS                                                             THRESHOLD
+----                         -----             -------                                                             ---------
+targets/demo-signing-role    "" <all paths>    d52aba2ec7f7ccf22876028db889fd1e086395fcb0334be07e9453d2270169e7    1
+targets/releases             "" <all paths>    d52aba2ec7f7ccf22876028db889fd1e086395fcb0334be07e9453d2270169e7    1
+
+[33m[1m[0m
+[33m[1m Tag a new image, sign and push it.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker tag localhost/library/alpine:unsigned localhost/library/alpine:signed
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker trust sign localhost/library/alpine:signed
+Signing and pushing trust data for local image localhost/library/alpine:signed, may overwrite remote trust data
+The push refers to repository [localhost/library/alpine]
+
+[1A[2K777b2c648970: Preparing [1B[1A[2K777b2c648970: Layer already exists [1Bsigned: digest: sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7 size: 528
+Signing and pushing trust metadata
+Successfully signed localhost/library/alpine:signed
+[33m[1m[0m
+[33m[1m Clean our local system again.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker system prune --all --force
+Deleted Images:
+untagged: localhost/library/alpine:signed
+untagged: localhost/library/alpine:unsigned
+untagged: localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+deleted: sha256:389fef7118515c70fd6c0e0d50bb75669942ea722ccb976507d7b087e54d5a23
+deleted: sha256:777b2c648970480f50f5b4d0af8f9a8ea798eea43dbcf40ce4a8c7118736bdcf
+
+Total reclaimed space: 5.577MB
+[33m[1m[0m
+[33m[1m Turn on Docker Content Trust so we can verify if pulling and unsigned image[0m
+[33m[1m fails and pulling a signed image succeeds.[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m export DOCKER_CONTENT_TRUST=1
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker pull localhost/library/alpine:unsigned
+No valid trust data for unsigned
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker pull localhost/library/alpine:signed
+Pull (1 of 1): localhost/library/alpine:signed@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7: Pulling from library/alpine
+
+[1A[2K801bfaa63ef2: Pulling fs layer [1B[1A[2K801bfaa63ef2: Downloading [>                                                  ]  34.17kB/2.799MB[1B[1A[2K801bfaa63ef2: Verifying Checksum [1B[1A[2K801bfaa63ef2: Download complete [1B[1A[2K801bfaa63ef2: Extracting [>                                                  ]  32.77kB/2.799MB[1B[1A[2K801bfaa63ef2: Extracting [==================================================>]  2.799MB/2.799MB[1B[1A[2K801bfaa63ef2: Pull complete [1BDigest: sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+Status: Downloaded newer image for localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+Tagging localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7 as localhost/library/alpine:signed
+localhost/library/alpine:signed
+[33m[1m[0m
+[33m[1m let's inspect the signature[0m
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m docker trust inspect --pretty localhost/library/alpine:signed
+
+Signatures for localhost/library/alpine:signed
+
+SIGNED TAG   DIGEST                                                             SIGNERS
+signed       074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7   demo-signing-role
+
+List of signers and their keys for localhost/library/alpine:signed
+
+SIGNER              KEYS
+demo-signing-role   d52aba2ec7f7
+
+Administrative keys for localhost/library/alpine:signed
+
+  Repository Key:	d0f389b67fb0a6ee04805c51b6698f64b0b709c4b4a59f55177f935fd46efb93
+  Root Key:	f4b853237c754e35326251ade056c4331c0fa7508c7329b1fa1c9266ecf55a49
+[34m/live-demo[0m [36m[0m [31m❯[0m[33m❯[0m[32m❯[0m 
+
+Script done on 2021-01-26 12:49:37+00:00 [COMMAND_EXIT_CODE="0"]
