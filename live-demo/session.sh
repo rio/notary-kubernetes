@@ -2,6 +2,7 @@
 #doitlive shell: /bin/bash
 #doitlive prompt: sorin
 #doitlive commentecho: true
+#doitlive alias: notary="notary -c config/notary-client.json"
 
 # This demo runs locally on k3s witin a docker container.
 kubectl version --short
@@ -10,12 +11,16 @@ docker version -f '{{.Server.Version}}'
 
 #
 # All our dependencies and services have already been deployed.
-# - cert-manager provisions all of our certificates.
-# - Traefik handles HTTPS Ingress Routing.
-# - PostgreSQL is our database backing Notary.
-# - Notary, the registry and have been deployed.
 kubectl get namespaces cert-manager traefik-system notary
-kubectl get pod,certificates -n notary
+
+#
+# cert-manager provisions all of our certificates.
+# Traefik handles HTTPS Ingress Routing.
+# PostgreSQL is our database backing Notary.
+# Notary and the registry have been deployed.
+kubectl get certificates -n notary
+kubectl get ingressroutes -n notary
+kubectl get pod -n notary
 
 #
 # Make sure no images are local and pull in an image.
@@ -23,10 +28,12 @@ docker system prune --all --force
 docker pull alpine:3.12
 
 #
-# Tag and push to verify our registry works. Then clean the system and verify
-# that pulling an image works.
+# Tag and push to verify our registry works
 docker tag alpine:3.12 localhost/library/alpine:unsigned
 docker push localhost/library/alpine:unsigned
+
+#
+# Clean the system and verify that pulling an image works.
 docker system prune --all --force
 docker pull localhost/library/alpine:unsigned
 
@@ -41,8 +48,8 @@ docker trust signer add --key demo-signing-role.pub demo-signing-role localhost/
 #
 # Verify that keys root and repository keys are generated and notary is
 # informed of the signer delegations.
-notary -c config/notary-client.json key list
-notary -c config/notary-client.json delegation list localhost/library/alpine
+notary key list
+notary delegation list localhost/library/alpine
 
 #
 # Tag a new image, sign and push it.
