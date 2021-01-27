@@ -1,4 +1,4 @@
-# rp1-docker-notary
+# Notary Kubernetes
 
 ## Requirements
 
@@ -59,10 +59,10 @@ dind
 0.  Clone this repository and cd into it.
 
     ```
-    ~ # git clone https://github.com/Rio/rp1-docker-notary.git
+    ~ # git clone https://github.com/Rio/notary-kubernetes.git
     ...snip...
 
-    ~ # cd rp1-docker-notary
+    ~ # cd notary-kubernetes
     ```
 
 1.  Run the `scripts/download-tools.sh` script to pull in all tools required.
