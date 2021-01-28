@@ -59,7 +59,7 @@ dind
 0.  Clone this repository and cd into it.
 
     ```
-    ~ # git clone https://github.com/Rio/notary-kubernetes.git
+    ~ # git clone https://github.com/rio/notary-kubernetes.git
     ...snip...
 
     ~ # cd notary-kubernetes
