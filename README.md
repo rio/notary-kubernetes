@@ -56,6 +56,9 @@ dind
 
 ## Quick Start
 
+> **NOTE**: All of the following steps assume that they are run inside of the
+> sandbox container setup earlier.
+
 0.  Clone this repository and cd into it.
 
     ```
@@ -69,32 +72,32 @@ dind
     The script will create a `bin` folder at the root of the repo and then
     downloads and verifies them before making them executable. If you want the
     scripts to use these tools automatically you'll have to add the `bin` folder
-    to your path as well. This change to your PATH will only be valid in this
-    terminal.
+    to your path as well. This change to your PATH will only be valid in this terminal.
+    Or you could move them to a location already your path like `/usr/local/bin`.
 
     ```
-    ~/rp1-docker-notary # ./scripts/download-tools.sh
+    ~/notary-kubernetes # ./scripts/download-tools.sh
     ## Downloading binaries
-    kubectl         ✓
-    kustomize       ✓
-    helm            ✓
-    k3d             ✓
-    notary          ✓
+    kubectl         DONE
+    kustomize       DONE
+    helm            DONE
+    k3d             DONE
+    notary          DONE
 
     ## Validating binaries
-    kubectl         ✓
-    kustomize       ✓
-    helm            ✓
-    k3d             ✓
-    notary          ✓
+    kubectl: OK
+    kustomize: OK
+    helm: OK
+    k3d: OK
+    notary: OK
 
-    Do not forget to add the /root/rp1-docker-notary/bin directory to your path so other
+    Do not forget to add the /root/notary-kubernetes/bin directory to your path so other
     scripts can use these binaries. Run the following command in the root of
     this repository to enable the bin folder for this terminal.
 
         export PATH=$PATH:$PWD/bin
 
-    ~/rp1-docker-notary # export PATH=$PATH:$PWD/bin
+    ~/notary-kubernetes # export PATH=$PATH:$PWD/bin
     ```
 2.  Run the `scripts/create-k3d-cluster.sh` to start a kubernetes cluster in docker.
     It will forward ports 80 and 443 from the container to localhost. This will
@@ -102,16 +105,18 @@ dind
     from within this container.
 
     ```
-    ~/rp1-docker-notary # ./scripts/create-k3d-cluster.sh
+    ~/notary-kubernetes # ./scripts/create-k3d-cluster.sh
     + k3d cluster create --k3s-server-arg=--disable=traefik --port 80:80@loadbalancer --port 443:443@loadbalancer
     INFO[0000] Created network 'k3d-k3s-default'
     INFO[0000] Created volume 'k3d-k3s-default-images'
     INFO[0001] Creating node 'k3d-k3s-default-server-0'
-    INFO[0005] Creating LoadBalancer 'k3d-k3s-default-serverlb'
-    INFO[0006] (Optional) Trying to get IP of the docker host and inject it into the cluster as 'host.k3d.internal' for easy access
-    INFO[0009] Successfully added host record to /etc/hosts in 2/2 nodes and to the CoreDNS ConfigMap
-    INFO[0009] Cluster 'k3s-default' created successfully!
-    INFO[0009] You can now use it like this:
+    INFO[0002] Pulling image 'docker.io/rancher/k3s:v1.19.4-k3s1'
+    INFO[0033] Creating LoadBalancer 'k3d-k3s-default-serverlb'
+    INFO[0034] Pulling image 'docker.io/rancher/k3d-proxy:v3.4.0'
+    INFO[0044] (Optional) Trying to get IP of the docker host and inject it into the cluster as 'host.k3d.internal' for easy access
+    INFO[0047] Successfully added host record to /etc/hosts in 2/2 nodes and to the CoreDNS ConfigMap
+    INFO[0047] Cluster 'k3s-default' created successfully!
+    INFO[0047] You can now use it like this:
     kubectl cluster-info
     ```
 
@@ -120,12 +125,12 @@ dind
     continue to step 4 to deploy everything.
 
     ```
-    ~/rp1-docker-notary # ./scripts/preflight-check.sh
+    ~/notary-kubernetes # ./scripts/preflight-check.sh
     Looking for required binaries
 
-    kubectl installed       ✓       (version: Client Version: v1.20.0                       path: /root/rp1-docker-notary/bin/kubectl)
-    kustomize installed     ✓       (version: {kustomize/v3.8.9  2020-12-29T15:49:08Z  }    path: /root/rp1-docker-notary/bin/kustomize)
-    helm installed          ✓       (version: v3.4.2+g23dd3af                               path: /root/rp1-docker-notary/bin/helm)
+    kubectl installed       ✓       (version: Client Version: v1.20.0                       path: /root/notary-kubernetes/bin/kubectl)
+    kustomize installed     ✓       (version: {kustomize/v3.8.9  2020-12-29T15:49:08Z  }    path: /root/notary-kubernetes/bin/kustomize)
+    helm installed          ✓       (version: v3.4.2+g23dd3af                               path: /root/notary-kubernetes/bin/helm)
 
     All required binaries found.
 
@@ -142,8 +147,14 @@ dind
     like a timeout is reached because of a slow or disconnected internet connection
     you can just rerun the script.
 
+    > **WARNING**: It is not recommended to run this script against any production
+    > cluster. It will install a number of cluster wide resources like CRDs, Namespaces,
+    > ClusterRoles and ClusterRoleBindings. Verify that you're not running this against
+    > an unexpected cluster with unexpected privileges by running the `preflight-check.sh`
+    > script again.
+
     ```
-    ~/rp1-docker-notary # ./scripts/deploy.sh
+    ~/notary-kubernetes # ./scripts/deploy.sh
     # Deploying dependencies
 
     ## Timeout when deploying dependencies: 5m
@@ -152,29 +163,47 @@ dind
 
     customresourcedefinition.apiextensions.k8s.io/certificaterequests.cert-manager.io created
     customresourcedefinition.apiextensions.k8s.io/certificates.cert-manager.io created
-    ...snip...
+    ... snip ...
+    deployment.apps/cert-manager created
     deployment.apps/cert-manager-webhook created
     mutatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
     validatingwebhookconfiguration.admissionregistration.k8s.io/cert-manager-webhook created
 
+    ### Waiting for cert-manager to report ready
+    deployment.apps/cert-manager-cainjector condition met
+    deployment.apps/cert-manager-webhook condition met
+    deployment.apps/cert-manager condition met
+
     ### Deploying traefik
 
     NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-    traefik traefik-system  1               2021-01-19 14:13:04.63592068 +0000 UTC  deployed        traefik-9.12.3  2.3.6
-    ### Deploying mariadb
+    traefik traefik-system  1               2021-01-28 10:34:44.284035325 +0000 UTC deployed        traefik-9.13.0  2.4.0
 
-    NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
-    mariadb mariadb         1               2021-01-19 14:13:12.570800813 +0000 UTC deployed        mariadb-9.2.2   10.5.8
     ### Waiting for traefik to report ready
-
     deployment.apps/traefik condition met
 
-    ### Waiting for mariadb to report ready
+    ### Deploying postgres
 
-    Waiting for 1 pods to be ready...
-    statefulset rolling update complete 1 pods at revision mariadb-d766ccf4f...
+    NAME    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+    notary  notary          1               2021-01-28 10:34:51.15701089 +0000 UTC  deployed        postgresql-10.2.4       11.10.0
 
     ## Deploying dependencies complete
+
+    ## Deploying certificates
+
+    secret/notary-ca created
+    secret/notary-ca-cert created
+    certificate.cert-manager.io/notaryserver-tls created
+    certificate.cert-manager.io/notarysigner-tls created
+    certificate.cert-manager.io/postgres-tls created
+    certificate.cert-manager.io/registry-tls created
+    issuer.cert-manager.io/notary-ca created
+
+    ### Waiting for certificates to report ready
+    certificate.cert-manager.io/notarysigner-tls condition met
+    certificate.cert-manager.io/postgres-tls condition met
+    certificate.cert-manager.io/registry-tls condition met
+    certificate.cert-manager.io/notaryserver-tls condition met
 
     # Deploying Notary and the registry
 
@@ -182,35 +211,26 @@ dind
 
     ### Deploying notary and registry
 
-    namespace/notary created
-    configmap/notaryserver-9g226fhg7t created
-    configmap/notarysigner-hc4767dmg9 created
-    configmap/scripts-k7fkbhf5gh created
-    secret/notary-ca created
-    secret/notaryserver-82f9bt4cct created
-    secret/notarysigner-td6hb4gbht created
-    service/notaryserver created
-    service/notarysigner created
+    namespace/notary configured
+    configmap/notaryserver-26cdfcb9c2 created
+    configmap/notarysigner-dt77g798g7 created
+    configmap/registry-config-2559m92g89 created
+    configmap/scripts-d26bg7f288 created
+    secret/notarysigner-4g6k44c8c8 created
+    service/notary created
     service/registry created
-    deployment.apps/notaryserver created
-    deployment.apps/notarysigner created
+    deployment.apps/notary created
     deployment.apps/registry created
     job.batch/migrate created
-    certificate.cert-manager.io/notaryserver-tls created
-    certificate.cert-manager.io/notarysigner-tls created
-    certificate.cert-manager.io/registry-tls created
-    issuer.cert-manager.io/notary-ca created
-    ingress.networking.k8s.io/notary created
-
-    ### Waiting for migration job to complete
-
-    job.batch/migrate condition met
+    ingressroute.traefik.containo.us/notary created
+    ingressroute.traefik.containo.us/registry created
+    serverstransport.traefik.containo.us/notary-tls created
+    serverstransport.traefik.containo.us/registry-tls created
 
     ### Waiting for deployments to report ready
 
     deployment.apps/registry condition met
-    deployment.apps/notaryserver condition met
-    deployment.apps/notarysigner condition met
+    deployment.apps/notary condition met
 
     ## Deploying notary and registry complete
 
@@ -221,6 +241,10 @@ dind
     We will run `scripts/verify.sh` which is loosly based on the [Docker Trust Content guide](https://docs.docker.com/engine/security/trust/)
     that Docker provides.
 
+    > **WARNING**: This script will generate keys and change data in `~/.docker/trust`.
+    > If you are not running this inside the sandbox container and have data in your
+    > `~/.docker/trust` folder that you do not want to lose you should make a backup!
+
     It will:
     - Pull in an image.
     - Tag the image so we can push it to our own registry.
@@ -230,53 +254,53 @@ dind
     - Verify if Docker fails a pull on an unsigned image and succeeds with a signed image.
 
     ```
-    ~/rp1-docker-notary # ./scripts/verify.sh
+    ~/notary-kubernetes # ./scripts/verify.sh
     # Exercising registry
 
-    ## Pulling alpine:3.13 image
+    ## Pulling alpine:3.12 image
 
-    3.13: Pulling from library/alpine
-    596ba82af5aa: Pull complete
-    Digest: sha256:d9a7354e3845ea8466bb00b22224d9116b183e594527fb5b6c3d30bc01a20378
-    Status: Downloaded newer image for alpine:3.13
-    docker.io/library/alpine:3.13
+    3.12: Pulling from library/alpine
+    801bfaa63ef2: Pull complete
+    Digest: sha256:3c7497bf0c7af93428242d6176e8f7905f2201d8fc5861f45be7a346b5f23436
+    Status: Downloaded newer image for alpine:3.12
+    docker.io/library/alpine:3.12
 
-    ## Tagging alpine:3.13 as localhost/library/alpine:unsigned
+    ## Tagging alpine:3.12 as localhost/library/alpine:unsigned
 
-    + docker tag alpine:3.13 localhost/library/alpine:unsigned
+    + docker tag alpine:3.12 localhost/library/alpine:unsigned
 
     ## Pushing localhost/library/alpine:unsigned image
 
     The push refers to repository [localhost/library/alpine]
-    c04d1437198b: Pushed
-    unsigned: digest: sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515 size: 528
+    777b2c648970: Pushed
+    unsigned: digest: sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7 size: 528
 
     # Registry functional
 
     # Exercising Notary
 
-    ## Generating local trust keys for 60ca58ba8378 with passphrase 'repo-passphrase'
+    ## Generating local trust keys for 831d0e07ce16 with passphrase 'repo'
 
-    Generating key for 60ca58ba8378...
-    Successfully generated and loaded private key. Corresponding public key available: /root/rp1-docker-notary/60ca58ba8378.pub
+    Generating key for 831d0e07ce16...
+    Successfully generated and loaded private key. Corresponding public key available: /root/notary-kubernetes/831d0e07ce16.pub
 
-    ## Adding 60ca58ba8378.pub as signer for localhost/library/alpine root passphrase 'root-passphrase' and repository passphrase 'repo-passphrase'
+    ## Adding 831d0e07ce16.pub as signer for localhost/library/alpine root passphrase 'root' and repository passphrase 'repo'
 
-    Adding signer "60ca58ba8378" to localhost/library/alpine...
+    Adding signer "831d0e07ce16" to localhost/library/alpine...
     Initializing signed repository for localhost/library/alpine...
     Successfully initialized "localhost/library/alpine"
-    Successfully added signer: 60ca58ba8378 to localhost/library/alpine
+    Successfully added signer: 831d0e07ce16 to localhost/library/alpine
 
-    ## Tagging alpine:3.13 as localhost/library/alpine:signed
+    ## Tagging alpine:3.12 as localhost/library/alpine:signed
 
-    + docker tag alpine:3.13 localhost/library/alpine:signed
+    + docker tag alpine:3.12 localhost/library/alpine:signed
 
     ## Signing and pushing localhost/library/alpine:signed
 
     Signing and pushing trust data for local image localhost/library/alpine:signed, may overwrite remote trust data
     The push refers to repository [localhost/library/alpine]
-    c04d1437198b: Layer already exists
-    signed: digest: sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515 size: 528
+    777b2c648970: Layer already exists
+    signed: digest: sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7 size: 528
     Signing and pushing trust metadata
     Successfully signed localhost/library/alpine:signed
 
@@ -288,7 +312,7 @@ dind
 
     Untagged: localhost/library/alpine:unsigned
     Untagged: localhost/library/alpine:signed
-    Untagged: localhost/library/alpine@sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515
+    Untagged: localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
 
     ## Verifying Docker fails to validate localhost/library/alpine:unsigned
 
@@ -296,11 +320,11 @@ dind
 
     ## Verifying Docker succeeds to validate localhost/library/alpine:signed
 
-    Pull (1 of 1): localhost/library/alpine:signed@sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515
-    localhost/library/alpine@sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515: Pulling from library/alpine
-    Digest: sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515
-    Status: Downloaded newer image for localhost/library/alpine@sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515
-    Tagging localhost/library/alpine@sha256:d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515 as localhost/library/alpine:signed
+    Pull (1 of 1): localhost/library/alpine:signed@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+    localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7: Pulling from library/alpine
+    Digest: sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+    Status: Downloaded newer image for localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7
+    Tagging localhost/library/alpine@sha256:074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7 as localhost/library/alpine:signed
     localhost/library/alpine:signed
 
     ## Inspecting signatures
@@ -308,19 +332,56 @@ dind
     Signatures for localhost/library/alpine:signed
 
     SIGNED TAG   DIGEST                                                             SIGNERS
-    signed       d0710affa17fad5f466a70159cc458227bd25d4afb39514ef662ead3e6c99515   60ca58ba8378
+    signed       074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7   831d0e07ce16
 
     List of signers and their keys for localhost/library/alpine:signed
 
     SIGNER         KEYS
-    60ca58ba8378   580a8f7c43b4
+    831d0e07ce16   03c8406788b1
 
     Administrative keys for localhost/library/alpine:signed
 
-    Repository Key:       2916820f4eb14565ca259d53003565b655dec5db63dc75389c1e2f8b5a51f47b
-    Root Key:     f4fbf87b64240e388c0a258c1b53e85ce76855984f9e13bbf46f6dedad3d9d2f
+        Repository Key:       012a4c53155b94c30654b50eac03ccf7004827ee56ae55fc7b6356ac3ce72676
+        Root Key:     764e4767d02e5880b059c071bdb7e74e9e62684dd296292e23b52743e4d8baf7
 
     # Docker Content Trust functional
 
     # Verification complete
+    ```
+
+6.  To interact with Notary directly you can use the config file `config/notary-client.json`.
+    Let's list our keys that we have locally.
+
+    ```
+    ~/notary-kubernetes # notary -c config/notary-client.json key list
+
+    ROLE            GUN                         KEY ID                                                              LOCATION
+    ----            ---                         ------                                                              --------
+    root                                        1720db1dd5fc5a58168065f8ca780c3b593046c9a8aa4af8e56d10304f9521b7    /root/.docker/trust/private
+    831d0e07ce16                                03c8406788b103962b32e0586492b51f0935bbd2b639ec777024779313f18969    /root/.docker/trust/private
+    targets         localhost/library/alpine    012a4c53155b94c30654b50eac03ccf7004827ee56ae55fc7b6356ac3ce72676    /root/.docker/trust/private
+    ```
+
+    As you can see our root and repository keys reside in `/root/.docker/trust/private`.
+    Now let's look at the delegations for `localhost/library/alpine` that are known
+    to our Notary instance.
+
+    ```
+    ~/notary-kubernetes # notary -c config/notary-client.json delegation list localhost/library/alpine
+
+    ROLE                    PATHS             KEY IDS                                                             THRESHOLD
+    ----                    -----             -------                                                             ---------
+    targets/831d0e07ce16    "" <all paths>    03c8406788b103962b32e0586492b51f0935bbd2b639ec777024779313f18969    1
+    targets/releases        "" <all paths>    03c8406788b103962b32e0586492b51f0935bbd2b639ec777024779313f18969    1
+    ```
+
+    Finally let's list the target signature that we just pushed to Notary. This
+    should be similar to the output of the `docker trust inspect --pretty localhost/library/alpine`
+    command that our `verify.sh` script ran at the end.
+
+    ```
+    ~/notary-kubernetes # notary -c config/notary-client.json list localhost/library/alpine
+    NAME      DIGEST                                                              SIZE (BYTES)    ROLE
+    ----      ------                                                              ------------    ----
+    signed    074d3636ebda6dd446d0d00304c4454f468237fdacf08fb0eeac90bdbfa1bac7    528             targets/831d0e07ce16
     ```
