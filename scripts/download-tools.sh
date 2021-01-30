@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if [ "$OSTYPE" != "linux-gnu" ] || [ "$OSTYPE" != "linux-musl" ]; then
+    printf "This script only works on linux but we've detected $OSTYPE.\n"
+    exit 1
+fi
+
 function detect_download_tool() {
     if ! command -v curl > /dev/null ; then
         printf "curl not found.\n"
@@ -21,40 +26,21 @@ function make_bin_and_cd() {
     cd bin
 }
 
-if [ "$OSTYPE" = "linux-gnu" ] || [ "$OSTYPE" = "linux-musl" ]; then
-    NOTARY_URL=https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
-    NOTARY_SHASUM=73353b2b4b85604c738a6800465133cb3a828dff0aa26f3c0926dd9a73e19879
+NOTARY_URL=https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Linux-amd64
+NOTARY_SHASUM=73353b2b4b85604c738a6800465133cb3a828dff0aa26f3c0926dd9a73e19879
 
-    KUSTOMIZE_URL=https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.9/kustomize_v3.8.9_linux_amd64.tar.gz
-    KUSTOMIZE_SHASUM=eb81252cc5dca85660639b224da34c118308435f53f4d74a5094d88dfcb185ac
+KUSTOMIZE_URL=https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.9/kustomize_v3.8.9_linux_amd64.tar.gz
+KUSTOMIZE_SHASUM=eb81252cc5dca85660639b224da34c118308435f53f4d74a5094d88dfcb185ac
 
-    K3D_URL=https://github.com/rancher/k3d/releases/download/v3.4.0/k3d-linux-amd64
-    K3D_SHASUM=1c961f1161d7b7fb55658ee32081b250a0da6d5f81e40c307a0300e3e130d19f
+K3D_URL=https://github.com/rancher/k3d/releases/download/v3.4.0/k3d-linux-amd64
+K3D_SHASUM=1c961f1161d7b7fb55658ee32081b250a0da6d5f81e40c307a0300e3e130d19f
 
-    KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/v1.20.0/bin/linux/amd64/kubectl
-    KUBECTL_SHASUM=a5895007f331f08d2e082eb12458764949559f30bcc5beae26c38f3e2724262c
+KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/v1.20.0/bin/linux/amd64/kubectl
+KUBECTL_SHASUM=a5895007f331f08d2e082eb12458764949559f30bcc5beae26c38f3e2724262c
 
-    HELM_URL=https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz
-    HELM_BINARY_PATH=linux-amd64/helm
-    HELM_SHASUM=d14d54d59558caebe234500f541fc2064b08d725ed8aa76f957f91c8d6a0fc46
-
-elif [ "$OSTYPE" = "darwin" ]; then
-    NOTARY_URL=https://github.com/theupdateframework/notary/releases/download/v0.6.1/notary-Darwin-amd64
-    NOTARY_SHASUM=9593cc0a341e7fe1d01e6834e9964558318a8679c058b6da755b8608dbeac3de
-
-    KUSTOMIZE_URL=https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv3.8.9/kustomize_v3.8.9_darwin_amd64.tar.gz
-    KUSTOMIZE_SHASUM=08fc96342720c1c438175888f0555f9bb4cca197829c699057a86607dc383564
-
-    K3D_URL=https://github.com/rancher/k3d/releases/download/v3.4.0/k3d-darwin-amd64
-    K3D_SHASUM=54b9b855eddcc3408fbd4f16eaafa6fffd54b17b7224ebe469ce0b2afe9e674c
-
-    KUBECTL_URL=https://storage.googleapis.com/kubernetes-release/release/v1.20.0/bin/darwin/amd64/kubectl
-    KUBECTL_SHASUM=82046a4abb056005edec097a42cc3bb55d1edd562d6f6f38c07318603fcd9fca
-
-    HELM_URL=https://get.helm.sh/helm-v3.4.2-darwin-amd64.tar.gz
-    HELM_BINARY_PATH=darwin-amd64/helm
-    HELM_SHASUM=71eae390246b1c6f4244d04aa7354d3a4d86e0c4e81ed5c967eb0bab47619870
-fi
+HELM_URL=https://get.helm.sh/helm-v3.4.2-linux-amd64.tar.gz
+HELM_BINARY_PATH=linux-amd64/helm
+HELM_SHASUM=d14d54d59558caebe234500f541fc2064b08d725ed8aa76f957f91c8d6a0fc46
 
 function validate_binary() {
     echo "$1  $2" | sha256sum -c -
